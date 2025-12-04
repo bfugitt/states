@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MacAtlas v2.4</title>
+    <title>MacAtlas v2.5</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -365,7 +365,7 @@
     <div id="main-window">
         <div id="title-bar">
             <div id="close-btn" onclick="quitGame()"></div>
-            <div id="title-text">MacAtlas v2.4</div>
+            <div id="title-text">MacAtlas v2.5</div>
         </div>
 
         <div id="content">
@@ -716,20 +716,20 @@
         }
 
         if (clickedState.name === correct.name) {
-            // --- CORRECT ---
+            // --- CORRECT ANSWER ---
             state.roundResolved = true;
             clickedEl.classList.add('correct');
             feedback.className = 'correct visible';
             
-            // Scoring Logic
             if (state.roundAttempts === 0) {
-                // First Try: 15 Points
+                // 1st Try: 15 pts
                 state.testCorrect++;
                 state.score += 15;
-                feedback.innerText = "GOOD JOB!";
+                feedback.innerText = "EXCELLENT!";
             } else {
-                // Second+ Try: 0 Points
-                // (Note: We do not increment score, nor testCorrect for strict stats)
+                // 2nd Try: 5 pts
+                // Technically not "perfect" correct for stats, but we give points
+                state.score += 5;
                 feedback.innerText = "CORRECT!";
             }
             
@@ -737,16 +737,27 @@
             setTimeout(nextMapRound, 1000);
 
         } else {
-            // --- WRONG ---
-            state.roundAttempts++;
+            // --- WRONG ANSWER ---
             void win.offsetWidth; win.classList.add('shake-effect');
             clickedEl.classList.add('wrong');
             
-            // Do NOT highlight correct answer yet, let them find it.
-            // Do NOT advance to next round.
+            if (state.roundAttempts === 0) {
+                // Failed 1st Try -> Allow 2nd Try
+                state.roundAttempts++;
+                feedback.classList.add('wrong visible');
+                feedback.innerText = `THAT IS ${clickedState.name.toUpperCase()}. TRY AGAIN.`;
+            } else {
+                // Failed 2nd Try -> Show Answer, No Points, Move On
+                state.roundResolved = true;
+                
+                const correctEl = document.getElementById("map-" + correct.name.replace(/\s/g, ''));
+                correctEl.classList.add('highlighted');
 
-            feedback.classList.add('wrong visible');
-            feedback.innerText = `THAT IS ${clickedState.name.toUpperCase()}. TRY AGAIN.`;
+                feedback.classList.add('wrong visible');
+                feedback.innerText = `WRONG. THAT WAS ${correct.name.toUpperCase()}.`;
+                
+                setTimeout(nextMapRound, 2000);
+            }
         }
     }
 
