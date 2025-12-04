@@ -301,8 +301,9 @@
         });
 
         try {
-            // NOTE: This assumes state_data.json is in the same directory as index.html
-            const response = await fetch('state_data.json');
+            // *** CORRECTED PATH: Assumes state_data.json is in the same directory ***
+            const response = await fetch('state_data.json'); 
+            // **********************************************************************
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
@@ -327,8 +328,8 @@
             document.getElementById('menu-screen').innerHTML = `
                 <h1 style="color:red;">ERROR</h1>
                 <p>Could not load <strong>state_data.json</strong>.</p>
-                <p>Verify the file exists at the correct path, and that you are running this page from a web server (or allowing local file access).</p>
-                <p>Check console for technical details.</p>
+                <p>Verify the file exists in the same folder as index.html, and check the console for details.</p>
+                <p>If running locally, some browsers require a local web server (like Live Server).</p>
             `;
         }
     }
