@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MacAtlas v2.0</title>
+    <title>MacAtlas v2.1</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -28,114 +28,139 @@
             height: 100dvh;
             overflow: hidden; 
             box-sizing: border-box;
-            /* Original checkerboard pattern */
             background-image: 
                 linear-gradient(45deg, #aaa 25%, transparent 25%), 
                 linear-gradient(-45deg, #aaa 25%, transparent 25%), 
                 linear-gradient(45deg, transparent 75%, #aaa 75%), 
                 linear-gradient(-45deg, transparent 75%, #aaa 75%);
-            background-size: 4px 4px;
-            user-select: none;
-            -webkit-user-select: none;
+            background-size: 2px 2px;
         }
 
-        /* Mac System Window Style */
-        .mac-window {
+        /* RETRO MAC WINDOW */
+        #main-window {
+            width: 95%;
+            max-width: 900px;
+            height: 90vh;
             background: var(--window-bg);
             border: 2px solid var(--border-color);
-            box-shadow: 8px 8px 0px rgba(0,0,0,0.5);
-            width: 95vw;
-            height: 90vh;
-            max-width: 1000px;
+            border-radius: 4px;
+            box-shadow: 5px 5px 0px rgba(0,0,0,0.3);
             display: flex;
             flex-direction: column;
             position: relative;
-            border-radius: 4px;
         }
 
-        .title-bar {
+        #title-bar {
             background: repeating-linear-gradient(
-                90deg,
-                #000 0px,
-                #000 2px,
-                #fff 2px,
-                #fff 4px
+                to bottom,
+                #000,
+                #000 1px,
+                #fff 1px,
+                #fff 2px
             );
-            height: 30px;
-            border-bottom: 2px solid #000;
+            height: 24px;
+            border-bottom: 2px solid var(--border-color);
             display: flex;
-            justify-content: center;
             align-items: center;
+            justify-content: center;
             position: relative;
             cursor: default;
         }
 
-        .title-text {
+        #title-text {
             background: #fff;
             padding: 0 10px;
-            font-size: 20px;
+            font-size: 18px;
             font-weight: bold;
-            border: 1px solid #000;
+            text-transform: uppercase;
         }
 
-        .content-area {
+        #close-btn {
+            position: absolute;
+            left: 6px;
+            width: 12px;
+            height: 12px;
+            border: 1px solid #000;
+            background: #fff;
+            box-shadow: 1px 1px 0 #000;
+        }
+
+        /* CONTENT AREA */
+        #content {
             flex: 1;
+            padding: 20px;
+            overflow-y: auto;
             display: flex;
             flex-direction: column;
-            padding: 10px;
-            overflow: hidden;
-            position: relative;
+            align-items: center;
         }
 
-        /* Stats Bar */
-        .stats-bar {
+        /* MENU SCREEN */
+        .screen {
+            display: none;
+            width: 100%;
+            height: 100%;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        h1 {
+            font-size: 48px;
+            margin: 20px 0;
+            text-align: center;
+            letter-spacing: 2px;
+            text-shadow: 2px 2px 0 #ccc;
+        }
+
+        .btn {
+            background: #fff;
+            border: 2px solid #000;
+            padding: 10px 30px;
+            margin: 10px;
+            font-family: 'VT323', monospace;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 3px 3px 0 #000;
+            transition: transform 0.1s, box-shadow 0.1s;
+            min-width: 200px;
+            text-align: center;
+        }
+
+        .btn:active {
+            transform: translate(2px, 2px);
+            box-shadow: 1px 1px 0 #000;
+        }
+
+        .btn:hover {
+            background: #eee;
+        }
+
+        /* GAME HUD */
+        #hud {
+            width: 100%;
             display: flex;
             justify-content: space-between;
-            border-bottom: 2px solid #000;
-            padding-bottom: 5px;
+            border-bottom: 2px dashed #000;
+            padding-bottom: 10px;
             margin-bottom: 10px;
             font-size: 24px;
         }
 
-        .stat-box {
-            display: flex;
-            gap: 10px;
-        }
-
-        /* Game Areas */
-        #game-container {
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-            width: 100%;
-            display: none; /* Hidden until loaded */
-        }
-
-        #prompt-area {
-            font-size: 28px;
-            text-align: center;
-            margin-bottom: 10px;
-            min-height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #eee;
-            border: 1px solid #000;
-            padding: 5px;
-            box-shadow: inset 2px 2px 0px rgba(0,0,0,0.1);
-        }
-
-        /* Map Styles */
-        #map-wrapper {
+        /* MAP GAME */
+        #map-container {
             flex: 1;
+            width: 100%;
             position: relative;
-            background: #fff; /* White background for the map area itself */
+            background: #f0f8ff; /* Light blue for water */
             border: 2px solid #000;
             overflow: hidden;
             touch-action: none;
-            box-shadow: inset 2px 2px 5px rgba(0,0,0,0.1);
         }
-
+        
         svg {
             width: 100%;
             height: 100%;
@@ -143,362 +168,552 @@
         }
 
         path {
-            fill: #e0e0e0;
-            stroke: #000000;
-            stroke-width: 1px;
-            vector-effect: non-scaling-stroke; 
+            fill: #fff;
+            stroke: #000;
+            stroke-width: 1;
             cursor: pointer;
             transition: fill 0.2s;
         }
 
         path:hover {
-            fill: #bbb;
-        }
-
-        path:active {
-            fill: #888;
+            fill: #ddd;
         }
 
         path.correct {
+            fill: #444 !important;
+            color: white;
+        }
+        
+        path.highlighted {
+            animation: blink 1s infinite;
             fill: #888 !important;
-            animation: patternFlash 1s;
         }
 
         path.wrong {
-            fill: #555 !important;
-            animation: shake 0.5s;
+            fill: #000 !important; /* Pattern fill handled by SVG defs ideally, but solid black for simple retro feel */
         }
 
-        path.highlighted {
-            fill: #bbb !important; 
-            animation: blink 1s infinite;
-        }
-
-        @keyframes shake {
-            0% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            50% { transform: translateX(5px); }
-            75% { transform: translateX(-5px); }
-            100% { transform: translateX(0); }
-        }
-        
         @keyframes blink {
-            50% { fill: #fff; }
+            0% { opacity: 0.5; }
+            50% { opacity: 1; }
+            100% { opacity: 0.5; }
         }
 
-        /* Modals & Loading */
-        .modal-overlay {
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.6);
-            display: none; 
-            justify-content: center;
-            align-items: center;
-            z-index: 100;
-            backdrop-filter: grayscale(100%) contrast(120%);
-        }
-
-        .mac-dialog {
-            background: #fff;
-            border: 2px solid #000;
-            padding: 20px;
-            box-shadow: 10px 10px 0 #000; /* Hard shadow */
-            text-align: center;
-            max-width: 80%;
-            width: 300px;
-        }
-
-        .btn {
-            background: #fff;
-            border: 2px solid #000;
-            padding: 8px 16px;
-            font-family: 'VT323', monospace;
-            font-size: 24px;
-            cursor: pointer;
-            margin-top: 15px;
+        #feedback-bar {
+            margin-top: 10px;
             width: 100%;
-            box-shadow: 4px 4px 0 #000;
-            transition: transform 0.1s;
-        }
-
-        .btn:active {
-            box-shadow: 2px 2px 0 #000;
-            transform: translate(2px, 2px);
-        }
-
-        .btn:hover {
+            height: 40px;
+            border: 2px solid #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
             background: #eee;
         }
 
+        #feedback-bar.correct {
+            background: #000;
+            color: #fff;
+        }
+
+        #feedback-bar.wrong {
+            background: repeating-linear-gradient(
+                45deg,
+                #fff,
+                #fff 10px,
+                #ccc 10px,
+                #ccc 20px
+            );
+            color: #000;
+            font-weight: bold;
+        }
+
+        /* CAPITALS GAME (UPDATED) */
+        #capitals-area {
+            flex: 1;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #capital-prompt {
+            font-size: 36px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        #capital-state-name {
+            font-size: 64px;
+            font-weight: bold;
+            margin-bottom: 40px;
+            text-decoration: underline;
+        }
+
+        #options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            width: 100%;
+            max-width: 600px;
+        }
+
+        .option-btn {
+            background: #fff;
+            border: 2px solid #000;
+            padding: 15px;
+            font-family: 'VT323', monospace;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 4px 4px 0 #000;
+            transition: all 0.1s;
+            text-align: center;
+        }
+
+        .option-btn:hover {
+            background: #eee;
+        }
+
+        .option-btn:active {
+            transform: translate(2px, 2px);
+            box-shadow: 2px 2px 0 #000;
+        }
+
+        .option-btn.correct-anim {
+            background: #000;
+            color: #fff;
+        }
+
+        .option-btn.wrong-anim {
+            opacity: 0.5;
+            background: #aaa;
+            text-decoration: line-through;
+        }
+
+        /* REPORT CARD MODAL */
+        #report-modal {
+            display: none;
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(255,255,255,0.9);
+            z-index: 100;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #report-card {
+            background: #fff;
+            border: 4px double #000;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 10px 10px 0 rgba(0,0,0,0.2);
+        }
+
+        .shake-effect {
+            animation: shake 0.5s;
+        }
+
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            10% { transform: translate(-1px, -2px) rotate(-1deg); }
+            20% { transform: translate(-3px, 0px) rotate(1deg); }
+            30% { transform: translate(3px, 2px) rotate(0deg); }
+            40% { transform: translate(1px, -1px) rotate(1deg); }
+            50% { transform: translate(-1px, 2px) rotate(-1deg); }
+            60% { transform: translate(-3px, 1px) rotate(0deg); }
+            70% { transform: translate(3px, 1px) rotate(-1deg); }
+            80% { transform: translate(-1px, -1px) rotate(1deg); }
+            90% { transform: translate(1px, 2px) rotate(0deg); }
+            100% { transform: translate(1px, -2px) rotate(-1deg); }
+        }
+
+        /* LOADING */
         #loading-screen {
             display: flex;
             flex-direction: column;
-            align-items: center;
             justify-content: center;
-            height: 100%;
-            width: 100%;
+            align-items: center;
+            font-size: 24px;
         }
     </style>
 </head>
 <body>
 
-<div class="mac-window">
-    <div class="title-bar">
-        <div class="title-text">MacAtlas v2.0</div>
-    </div>
-    
-    <div class="content-area">
-        <!-- Stats -->
-        <div class="stats-bar">
-            <div class="stat-box">Score: <span id="score-val">0</span></div>
-            <div class="stat-box">Time: <span id="time-val">00:00</span></div>
+    <div id="main-window">
+        <div id="title-bar">
+            <div id="close-btn" onclick="quitGame()"></div>
+            <div id="title-text">MacAtlas v2.1</div>
         </div>
 
-        <!-- Loading Screen (New feature for stability) -->
-        <div id="loading-screen">
-            <h2>SYSTEM LOADING...</h2>
-            <p>Mounting 'state_data.json'...</p>
-        </div>
-
-        <!-- Main Game Container -->
-        <div id="game-container">
-            <div id="prompt-area">Welcome to MacAtlas</div>
-            <div id="map-wrapper">
-                <!-- SVG injected via JS -->
-                <svg id="us-map" preserveAspectRatio="xMidYMid meet"></svg>
+        <div id="content">
+            
+            <!-- LOADING SCREEN -->
+            <div id="loading-screen" class="screen active">
+                <p>LOADING GEOGRAPHY DATA...</p>
+                <p id="loading-status">0%</p>
             </div>
-        </div>
-    </div>
 
-    <!-- Mode Selection Modal -->
-    <div id="modal-start" class="modal-overlay">
-        <div class="mac-dialog">
-            <h1>SELECT MODE</h1>
-            <div id="mode-select" style="display:flex; flex-direction:column; gap:10px;">
-                <button class="btn" onclick="startGame('learn')">LEARN MODE (Easy)</button>
-                <button class="btn" onclick="startGame('quiz')">CAPITALS (Hard)</button>
+            <!-- MENU SCREEN -->
+            <div id="menu-screen" class="screen">
+                <h1>MacAtlas</h1>
+                <p style="text-align:center; font-size: 20px;">USA EDITION</p>
+                <div style="height: 20px;"></div>
+                <button class="btn" onclick="startGame('map')">FIND THE STATE</button>
+                <button class="btn" onclick="startGame('capitals')">NAME THE CAPITAL</button>
             </div>
-        </div>
-    </div>
 
-    <!-- Report Card Modal -->
-    <div id="modal-report" class="modal-overlay">
-        <div class="mac-dialog">
-            <h1>REPORT CARD</h1>
-            <h2 id="report-grade">A+</h2>
-            <p id="report-details">10/10 Correct</p>
-            <button class="btn" onclick="location.reload()">PLAY AGAIN</button>
+            <!-- GAME SCREEN -->
+            <div id="game-screen" class="screen">
+                <div id="hud">
+                    <span id="score-display">SCORE: 000</span>
+                    <span id="timer-display">TIME: 00:00</span>
+                    <button style="font-family:'VT323'; background:none; border:1px solid #000; cursor:pointer;" onclick="quitGame()">QUIT</button>
+                </div>
+
+                <!-- MAP MODE ELEMENTS -->
+                <div id="map-game-ui" style="display:none; width: 100%; height: 100%; flex-direction: column;">
+                    <div id="map-container">
+                        <!-- SVG injected here -->
+                    </div>
+                    <div id="feedback-bar">Locating Data...</div>
+                </div>
+
+                <!-- CAPITALS MODE ELEMENTS -->
+                <div id="capitals-game-ui" style="display:none; width: 100%; height: 100%; flex-direction: column; align-items: center;">
+                    <div id="capitals-area">
+                        <div id="capital-prompt">WHAT IS THE CAPITAL OF</div>
+                        <div id="capital-state-name">CALIFORNIA</div>
+                        
+                        <div id="options-grid">
+                            <button class="option-btn" id="opt-0" onclick="checkCapital(0)">SACRAMENTO</button>
+                            <button class="option-btn" id="opt-1" onclick="checkCapital(1)">AUSTIN</button>
+                            <button class="option-btn" id="opt-2" onclick="checkCapital(2)">BOSTON</button>
+                            <button class="option-btn" id="opt-3" onclick="checkCapital(3)">ALBANY</button>
+                        </div>
+                    </div>
+                    <div id="feedback-bar" style="margin-top:auto;">SELECT AN OPTION</div>
+                </div>
+            </div>
+
+            <!-- REPORT MODAL -->
+            <div id="report-modal">
+                <div id="report-card">
+                    <h2>REPORT CARD</h2>
+                    <h1 id="report-percent" style="font-size:80px; margin: 10px 0;">100%</h1>
+                    <p id="report-fraction">10 / 10 Correct</p>
+                    <button class="btn" onclick="closeReport()">OK</button>
+                </div>
+            </div>
+
         </div>
     </div>
-    
-    <!-- Error Modal (New feature for stability) -->
-    <div id="modal-error" class="modal-overlay">
-        <div class="mac-dialog">
-            <h1>SYSTEM ERROR</h1>
-            <p>Could not load "state_data.json".</p>
-            <p style="font-size: 0.8em;">Please ensure the file exists.</p>
-            <button class="btn" onclick="location.reload()">RETRY</button>
-        </div>
-    </div>
-</div>
 
 <script>
-    let stateData = [];
-    let gameState = {
-        mode: '',
+    // --- GLOBAL STATE ---
+    const state = {
+        allData: [],
+        gameMode: null, // 'map' or 'capitals'
         score: 0,
-        time: 0,
+        startTime: 0,
         timerInterval: null,
-        currentPool: [],
-        currentQuestion: null,
-        totalQuestions: 0,
-        correctCount: 0
+        pool: [], // Shuffled list of states for the current round
+        currentIdx: 0,
+        
+        // Stats for report
+        testTotal: 0,
+        testCorrect: 0,
+
+        // Capitals specific
+        currentOptions: [] // Stores the 4 current capital objects
     };
 
-    // 1. Initial Load
-    window.addEventListener('load', () => {
-        fetchStateData();
-    });
+    const SVG_WIDTH = 959;
+    const SVG_HEIGHT = 593;
 
+    // --- INITIALIZATION ---
     async function fetchStateData() {
         try {
             const response = await fetch('state_data.json');
-            if (!response.ok) throw new Error("HTTP error " + response.status);
-            stateData = await response.json();
+            if (!response.ok) throw new Error("Could not load state_data.json");
             
-            initializeMap();
-            document.getElementById('loading-screen').style.display = 'none';
-            document.getElementById('modal-start').style.display = 'flex';
-        } catch (error) {
-            console.error("Failed to load state data:", error);
-            document.getElementById('loading-screen').style.display = 'none';
-            document.getElementById('modal-error').style.display = 'flex';
+            const data = await response.json();
+            
+            // Validate data structure slightly
+            if(!Array.isArray(data)) throw new Error("JSON is not an array");
+            
+            state.allData = data;
+            
+            // Initial render of SVG (hidden) to prep
+            renderMap();
+            
+            document.getElementById('loading-screen').classList.remove('active');
+            document.getElementById('menu-screen').classList.add('active');
+            
+        } catch (e) {
+            document.getElementById('loading-status').innerText = "ERROR LOADING DATA: " + e.message;
+            console.error(e);
         }
     }
 
-    // 2. Map Rendering & ViewBox Fix
-    function initializeMap() {
-        const svg = document.getElementById('us-map');
-        svg.innerHTML = ''; // Clear previous
+    function renderMap() {
+        // Create SVG element
+        const ns = "http://www.w3.org/2000/svg";
+        const svg = document.createElementNS(ns, "svg");
+        svg.setAttribute("viewBox", `0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`);
+        svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
 
-        // Create paths for all states
-        stateData.forEach(state => {
-            const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-            path.setAttribute("d", state.path);
-            path.setAttribute("id", "state-" + cleanName(state.name));
-            path.setAttribute("class", "state-path");
+        state.allData.forEach(s => {
+            const path = document.createElementNS(ns, "path");
+            path.setAttribute("d", s.path);
+            path.setAttribute("id", "map-" + s.name.replace(/\s/g, '')); // ID for easy lookup
+            path.setAttribute("data-name", s.name);
             
-            // Interaction Events
-            path.addEventListener('click', () => handleStateClick(state));
-            path.addEventListener('touchstart', (e) => {
-                e.preventDefault(); // Prevent double-tap zoom
-                handleStateClick(state);
+            // Map Click Event
+            path.addEventListener('click', (e) => {
+                if (state.gameMode === 'map') handleMapClick(s);
             });
 
             svg.appendChild(path);
         });
 
-        // Bug Fix: Auto-calculate ViewBox to fit the map perfectly
-        resizeMapToFit();
-        window.addEventListener('resize', resizeMapToFit);
+        const container = document.getElementById('map-container');
+        container.innerHTML = '';
+        container.appendChild(svg);
     }
 
-    // This ensures the map is always centered, fixing the "cutoff" issues
-    function resizeMapToFit() {
-        const svg = document.getElementById('us-map');
-        try {
-            const bbox = svg.getBBox();
-            if (bbox.width > 0 && bbox.height > 0) {
-                // Add a little padding (5%)
-                const paddingX = bbox.width * 0.05;
-                const paddingY = bbox.height * 0.05;
-                const viewBoxStr = `${bbox.x - paddingX} ${bbox.y - paddingY} ${bbox.width + (paddingX*2)} ${bbox.height + (paddingY*2)}`;
-                svg.setAttribute("viewBox", viewBoxStr);
-            }
-        } catch (e) {
-            console.warn("Could not calculate BBox (SVG might be hidden)", e);
+    // --- GAME LOOP ---
+
+    function startGame(mode) {
+        state.gameMode = mode;
+        state.score = 0;
+        state.testTotal = 0;
+        state.testCorrect = 0;
+        state.startTime = Date.now();
+        
+        // Shuffle all states for the game pool
+        state.pool = [...state.allData].sort(() => 0.5 - Math.random());
+        // Limit to 10 questions for a "Round" or do all 50? Let's do 10 for quick play, or all.
+        // Let's do 10 for better UX loop.
+        state.pool = state.pool.slice(0, 10);
+        state.currentIdx = 0;
+
+        document.getElementById('score-display').innerText = "SCORE: 0";
+        document.getElementById('menu-screen').classList.remove('active');
+        document.getElementById('game-screen').classList.add('active');
+
+        // Timer
+        if (state.timerInterval) clearInterval(state.timerInterval);
+        state.timerInterval = setInterval(updateTimer, 1000);
+
+        if (mode === 'map') {
+            document.getElementById('map-game-ui').style.display = 'flex';
+            document.getElementById('capitals-game-ui').style.display = 'none';
+            loadMapRound();
+        } else {
+            document.getElementById('map-game-ui').style.display = 'none';
+            document.getElementById('capitals-game-ui').style.display = 'flex';
+            loadCapitalRound();
         }
     }
 
-    // 3. Game Logic
-    function startGame(mode) {
-        gameState.mode = mode;
-        gameState.score = 0;
-        gameState.time = 0;
-        gameState.correctCount = 0;
-        gameState.totalQuestions = 0;
+    function quitGame() {
+        if (state.timerInterval) clearInterval(state.timerInterval);
+        document.getElementById('game-screen').classList.remove('active');
+        document.getElementById('report-modal').style.display = 'none';
+        document.getElementById('menu-screen').classList.add('active');
         
-        // Reset UI
-        document.getElementById('modal-start').style.display = 'none';
-        document.getElementById('game-container').style.display = 'flex';
-        // Trigger resize now that container is visible
-        resizeMapToFit();
-        
-        updateStats();
-        startTimer();
-
-        // Prepare Questions
-        gameState.currentPool = [...stateData];
-        // Shuffle
-        gameState.currentPool.sort(() => Math.random() - 0.5);
-        
-        nextRound();
-    }
-
-    function startTimer() {
-        clearInterval(gameState.timerInterval);
-        gameState.timerInterval = setInterval(() => {
-            gameState.time++;
-            const mins = Math.floor(gameState.time / 60).toString().padStart(2, '0');
-            const secs = (gameState.time % 60).toString().padStart(2, '0');
-            document.getElementById('time-val').innerText = `${mins}:${secs}`;
-        }, 1000);
-    }
-
-    function updateStats() {
-        document.getElementById('score-val').innerText = gameState.score;
-    }
-
-    function nextRound() {
-        // Clear highlights
+        // Reset Map colors
         document.querySelectorAll('path').forEach(p => {
-            p.classList.remove('highlighted', 'correct', 'wrong');
+            p.classList.remove('correct', 'wrong', 'highlighted');
+            p.style.fill = '';
         });
+    }
 
-        if (gameState.currentPool.length === 0) {
-            endGame();
+    function updateTimer() {
+        const delta = Math.floor((Date.now() - state.startTime) / 1000);
+        const m = Math.floor(delta / 60).toString().padStart(2, '0');
+        const s = (delta % 60).toString().padStart(2, '0');
+        document.getElementById('timer-display').innerText = `TIME: ${m}:${s}`;
+    }
+
+    // --- CAPITALS GAME LOGIC (NEW 4-OPTION VERSION) ---
+
+    function loadCapitalRound() {
+        // Check end condition
+        if (state.currentIdx >= state.pool.length) {
+            showReport();
             return;
         }
 
-        gameState.currentQuestion = gameState.currentPool.pop();
-        gameState.totalQuestions++;
-
-        const prompt = document.getElementById('prompt-area');
+        const targetState = state.pool[state.currentIdx];
         
-        // --- LOGIC: Handle Question Modes ---
-        if (gameState.mode === 'learn') {
-            // Learn Mode: "Find [State]"
-            prompt.innerText = `FIND: ${gameState.currentQuestion.name.toUpperCase()}`;
-        } else {
-            // Capital Quiz Mode: "Where is the state for [Capital]?"
-            prompt.innerText = `FIND THE STATE FOR: ${gameState.currentQuestion.capital.toUpperCase()}`;
+        // Update UI
+        document.getElementById('capital-state-name').innerText = targetState.name.toUpperCase();
+        const feedback = document.getElementById('feedback-bar');
+        feedback.className = '';
+        feedback.innerText = "SELECT THE CORRECT CAPITAL";
+
+        // Generate Options
+        // 1. Get correct capital
+        const correctOption = { name: targetState.capital, isCorrect: true };
+        
+        // 2. Get 3 random distractors
+        // Filter out the current state to avoid duplicate correct answer
+        const distractorsPool = state.allData.filter(s => s.name !== targetState.name);
+        const shuffledDistractors = distractorsPool.sort(() => 0.5 - Math.random()).slice(0, 3);
+        
+        const options = shuffledDistractors.map(s => ({ name: s.capital, isCorrect: false }));
+        options.push(correctOption);
+
+        // 3. Shuffle options
+        state.currentOptions = options.sort(() => 0.5 - Math.random());
+
+        // 4. Render buttons
+        const grid = document.getElementById('options-grid');
+        // Clear existing visual states
+        for(let i=0; i<4; i++) {
+            const btn = document.getElementById(`opt-${i}`);
+            btn.innerText = state.currentOptions[i].name.toUpperCase();
+            btn.classList.remove('correct-anim', 'wrong-anim');
+            btn.disabled = false;
         }
     }
 
-    function handleStateClick(clickedState) {
-        if (!gameState.currentQuestion) return;
+    function checkCapital(idx) {
+        const selected = state.currentOptions[idx];
+        const btn = document.getElementById(`opt-${idx}`);
+        const feedback = document.getElementById('feedback-bar');
 
-        const correctState = gameState.currentQuestion;
-        const isCorrect = clickedState.name === correctState.name;
-        
-        const clickedPath = document.getElementById("state-" + cleanName(clickedState.name));
-        const correctPath = document.getElementById("state-" + cleanName(correctState.name));
+        // Disable all buttons to prevent double clicking
+        for(let i=0; i<4; i++) document.getElementById(`opt-${i}`).disabled = true;
 
-        if (isCorrect) {
-            // Correct!
-            clickedPath.classList.add('correct');
-            document.getElementById('prompt-area').innerText = "CORRECT!";
-            gameState.score += 100;
-            gameState.correctCount++;
-            updateStats();
-            setTimeout(nextRound, 1000);
-        } else {
-            // Wrong!
-            clickedPath.classList.add('wrong');
-            correctPath.classList.add('highlighted'); // Show them the right one
+        state.testTotal++;
+
+        if (selected.isCorrect) {
+            // Correct
+            state.testCorrect++;
+            state.score += 10;
+            document.getElementById('score-display').innerText = "SCORE: " + state.score;
             
-            // Helpful feedback based on mode
-            if (gameState.mode === 'learn') {
-                 document.getElementById('prompt-area').innerText = `NO, THAT IS ${clickedState.name.toUpperCase()}`;
-            } else {
-                 document.getElementById('prompt-area').innerText = `WRONG. ${gameState.currentQuestion.capital.toUpperCase()} IS IN ${gameState.currentQuestion.name.toUpperCase()}`;
-            }
-           
-            gameState.score = Math.max(0, gameState.score - 50);
-            updateStats();
-            setTimeout(nextRound, 2500); // Give them longer to read the correction
+            btn.classList.add('correct-anim');
+            feedback.className = 'correct';
+            feedback.innerText = "CORRECT!";
+            
+            setTimeout(nextCapitalRound, 1000);
+        } else {
+            // Wrong
+            btn.classList.add('wrong-anim');
+            feedback.className = 'wrong';
+            feedback.innerText = `WRONG. ANSWER WAS ${getCorrectCapitalName().toUpperCase()}`;
+            
+            // Highlight the correct one
+            state.currentOptions.forEach((opt, i) => {
+                if(opt.isCorrect) {
+                    document.getElementById(`opt-${i}`).classList.add('correct-anim');
+                }
+            });
+
+            const win = document.getElementById('game-screen');
+            void win.offsetWidth; win.classList.add('shake-effect'); // Screen shake
+
+            setTimeout(nextCapitalRound, 2000);
         }
     }
 
-    function endGame() {
-        clearInterval(gameState.timerInterval);
-        const percent = Math.round((gameState.correctCount / gameState.totalQuestions) * 100) || 0;
+    function getCorrectCapitalName() {
+        const correct = state.currentOptions.find(o => o.isCorrect);
+        return correct ? correct.name : "";
+    }
+
+    function nextCapitalRound() {
+        const win = document.getElementById('game-screen');
+        win.classList.remove('shake-effect');
+        state.currentIdx++;
+        loadCapitalRound();
+    }
+
+
+    // --- MAP GAME LOGIC ---
+    
+    function loadMapRound() {
+        // Reset styles
+        document.querySelectorAll('path').forEach(p => {
+            p.classList.remove('highlighted', 'wrong', 'correct');
+        });
+
+        if (state.currentIdx >= state.pool.length) {
+            showReport();
+            return;
+        }
+
+        const target = state.pool[state.currentIdx];
+        const feedback = document.getElementById('feedback-bar');
+        feedback.className = '';
+        feedback.innerText = `FIND: ${target.name.toUpperCase()}`;
+    }
+
+    function handleMapClick(clickedState) {
+        const correct = state.pool[state.currentIdx];
+        const feedback = document.getElementById('feedback-bar');
+        const win = document.getElementById('game-screen');
+
+        if (state.currentIdx >= state.pool.length) return; // Game over safety
+
+        // Identify HTML element of clicked
+        const clickedEl = document.getElementById("map-" + clickedState.name.replace(/\s/g, ''));
         
-        let grade = "F";
-        if (percent >= 90) grade = "A";
-        else if (percent >= 80) grade = "B";
-        else if (percent >= 70) grade = "C";
-        else if (percent >= 60) grade = "D";
+        state.testTotal++;
 
-        document.getElementById('report-grade').innerText = grade;
-        document.getElementById('report-details').innerText = `${gameState.correctCount} / ${gameState.totalQuestions} Correct (${percent}%)`;
-        document.getElementById('modal-report').style.display = 'flex';
+        if (clickedState.name === correct.name) {
+            // Correct
+            clickedEl.classList.add('correct');
+            feedback.className = 'correct';
+            feedback.innerText = "GOOD JOB!";
+            state.testCorrect++;
+            state.score += 15;
+            document.getElementById('score-display').innerText = "SCORE: " + state.score;
+            setTimeout(nextMapRound, 1000);
+        } else {
+            // Wrong
+            void win.offsetWidth; win.classList.add('shake-effect');
+            clickedEl.classList.add('wrong');
+            
+            // Show correct one
+            const correctEl = document.getElementById("map-" + correct.name.replace(/\s/g, ''));
+            correctEl.classList.add('highlighted'); 
+
+            feedback.classList.add('wrong');
+            feedback.innerText = `THAT IS ${clickedState.name.toUpperCase()}. FIND ${correct.name.toUpperCase()}.`;
+            setTimeout(nextMapRound, 2000);
+        }
     }
 
-    // Helper
-    function cleanName(name) {
-        return name.replace(/\s+/g, '');
+    function nextMapRound() {
+        const win = document.getElementById('game-screen');
+        win.classList.remove('shake-effect');
+        state.currentIdx++;
+        loadMapRound();
     }
+
+    // --- REPORT CARD ---
+    function showReport() {
+        const pct = state.testTotal === 0 ? 0 : Math.round((state.testCorrect / state.testTotal) * 100);
+        document.getElementById('report-percent').innerText = pct + "%";
+        document.getElementById('report-fraction').innerText = `${state.testCorrect} / ${state.testTotal} Correct`;
+        document.getElementById('report-modal').style.display = 'flex';
+    }
+
+    function closeReport() {
+        document.getElementById('report-modal').style.display = 'none';
+        quitGame();
+    }
+
+    // This must be the last thing to run in the script block.
+    // It starts the data loading process immediately after the page loads.
+    fetchStateData(); 
+
 </script>
 </body>
 </html>
