@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MacAtlas v3.0 - Trivia Edition</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-color: #888;
+            --window-bg: #ffffff;
+            --border-color: #000000;
+        }
+
+        body {
+            font-family: 'VT323', monospace;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh; 
+            height: 100dvh;
+            overflow: hidden; 
+            box-sizing: border-box;
+            background-image: 
+                linear-gradient(45deg, #aaa 25%, transparent 25%), 
+                linear-gradient(-45deg, #aaa 25%, transparent 25%), 
+                linear-gradient(45deg, transparent 75%, #aaa 75%), 
+                linear-gradient(-45deg, transparent 75%, #aaa 75%);
+            background-size: 2px 2px;
+        }
+
+        /* RETRO MAC WINDOW */
+        #main-window {
+            width: 95%;
+            max-width: 900px;
+            height: 90vh;
+            background: var(--window-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 4px;
+            box-shadow: 5px 5px 0px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        #title-bar {
+            background: repeating-linear-gradient(
+                to bottom,
+                #000,
+                #000 1px,
+                #fff 1px,
+                #fff 2px
+            );
+            height: 24px;
+            border-bottom: 2px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            cursor: default;
+        }
+
+        #title-text {
+            background: #fff;
+            padding: 0 10px;
+            font-size: 18px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        #close-btn {
+            position: absolute;
+            left: 6px;
+            width: 12px;
+            height: 12px;
+            border: 1px solid #000;
+            background: #fff;
+            box-shadow: 1px 1px 0 #000;
+        }
+
+        /* CONTENT AREA */
+        #content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* SCREEN MANAGEMENT */
+        .screen {
+            display: none; /* Default hidden */
+            width: 100%;
+            height: 100%;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .screen.active {
+            display: flex; /* Only show when active class is present */
+        }
+
+        h1 {
+            font-size: 48px;
+            margin: 20px 0;
+            text-align: center;
+            letter-spacing: 2px;
+            text-shadow: 2px 2px 0 #ccc;
+        }
+
+        .btn {
+            background: #fff;
+            border: 2px solid #000;
+            padding: 10px 30px;
+            margin: 10px;
+            font-family: 'VT323', monospace;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 3px 3px 0 #000;
+            transition: transform 0.1s, box-shadow 0.1s;
+            min-width: 250px;
+            text-align: center;
+        }
+
+        .btn:active {
+            transform: translate(2px, 2px);
+            box-shadow: 1px 1px 0 #000;
+        }
+
+        .btn:hover {
+            background: #eee;
+        }
+
+        /* GAME HUD */
+        #hud {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 2px dashed #000;
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+            font-size: 24px;
+        }
+
+        /* MAP GAME */
+        #map-container {
+            flex: 1;
+            width: 100%;
+            position: relative;
+            background: #f0f8ff;
+            border: 2px solid #000;
+            overflow: hidden;
+            touch-action: none;
+        }
+        
+        svg {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        path {
+            fill: #fff;
+            stroke: #000;
+            stroke-width: 1;
+            cursor: pointer;
+            transition: fill 0.2s;
+        }
+
+        path:hover {
+            fill: #ddd;
+        }
+
+        path.correct {
+            fill: #444 !important;
+            color: white;
+        }
+        
+        path.highlighted {
+            animation: blink 1s infinite;
+            fill: #888 !important;
+        }
+
+        path.wrong {
+            fill: #000 !important;
+        }
+
+        @keyframes blink {
+            0% { opacity: 0.5; }
+            50% { opacity: 1; }
+            100% { opacity: 0.5; }
+        }
+
+        /* FEEDBACK BAR */
+        #feedback-bar {
+            margin-top: 10px;
+            width: 100%;
+            height: 40px;
+            border: 2px solid #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            background: #eee;
+            transition: background 0.2s;
+            visibility: hidden; /* Hidden by default */
+        }
+
+        #feedback-bar.visible {
+            visibility: visible;
+        }
+
+        #feedback-bar.correct {
+            background: #000;
+            color: #fff;
+        }
+
+        #feedback-bar.wrong {
+            background: repeating-linear-gradient(
+                45deg,
+                #fff,
+                #fff 10px,
+                #ccc 10px,
+                #ccc 20px
+            );
+            color: #000;
+            font-weight: bold;
+        }
+
+        /* GENERIC GAME UI (Used for Capitals and Trivia) */
+        .quiz-area {
+            flex: 1;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden; 
+        }
+
+        #capital-prompt, #trivia-prompt {
+            font-size: 28px;
+            margin-bottom: 10px;
+            text-align: center;
+            max-width: 800px;
+            line-height: 1.2;
+        }
+
+        #capital-state-preview {
+            height: 200px;
+            width: 100%;
+            max-width: 300px;
+            margin: 10px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        #capital-state-preview svg {
+            filter: drop-shadow(4px 4px 0px rgba(0,0,0,0.2));
+        }
+        
+        #capital-state-preview path {
+            fill: #ddd;
+            stroke: #000;
+            stroke-width: 2;
+            cursor: default;
+        }
+
+        #capital-state-name, #trivia-state-name {
+            font-size: 48px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-decoration: underline;
+            text-align: center;
+        }
+        
+        /* Specific Trivia Styles */
+        #trivia-question-text {
+            font-size: 32px;
+            text-align: center;
+            margin: 20px;
+            max-width: 700px;
+            min-height: 100px; /* Prevent jumpiness */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #options-grid, #trivia-options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            width: 100%;
+            max-width: 600px;
+        }
+
+        .option-btn {
+            background: #fff;
+            border: 2px solid #000;
+            padding: 12px;
+            font-family: 'VT323', monospace;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 4px 4px 0 #000;
+            transition: all 0.1s;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 60px;
+            line-height: 1.1;
+        }
+
+        .option-btn:hover {
+            background: #eee;
+        }
+
+        .option-btn:active {
+            transform: translate(2px, 2px);
+            box-shadow: 2px 2px 0 #000;
+        }
+
+        .option-btn.correct-anim {
+            background: #000;
+            color: #fff;
+        }
+
+        .option-btn.wrong-anim {
+            opacity: 0.5;
+            background: #aaa;
+            text-decoration: line-through;
+        }
+
+        /* REPORT CARD MODAL */
+        #report-modal {
+            display: none;
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(255,255,255,0.9);
+            z-index: 100;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #report-card {
+            background: #fff;
+            border: 4px double #000;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 10px 10px 0 rgba(0,0,0,0.2);
+        }
+
+        .shake-effect {
+            animation: shake 0.5s;
+        }
+
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            10% { transform: translate(-1px, -2px) rotate(-1deg); }
+            20% { transform: translate(-3px, 0px) rotate(1deg); }
+            30% { transform: translate(3px, 2px) rotate(0deg); }
+            40% { transform: translate(1px, -1px) rotate(1deg); }
+            50% { transform: translate(-1px, 2px) rotate(-1deg); }
+            60% { transform: translate(-3px, 1px) rotate(0deg); }
+            70% { transform: translate(3px, 1px) rotate(-1deg); }
+            80% { transform: translate(-1px, -1px) rotate(1deg); }
+            90% { transform: translate(1px, 2px) rotate(0deg); }
+            100% { transform: translate(1px, -2px) rotate(-1deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="main-window">
+        <div id="title-bar">
+            <div id="close-btn" onclick="quitGame()"></div>
+            <div id="title-text">MacAtlas v3.0</div>
+        </div>
+
+        <div id="content">
+
+            <!-- MENU SCREEN (Active by default) -->
+            <div id="menu-screen" class="screen active">
+                <h1>MacAtlas</h1>
+                <p style="text-align:center; font-size: 20px;">USA EDITION</p>
+                <div style="height: 20px;"></div>
+                <button class="btn" onclick="startGame('map')">FIND THE STATE</button>
+                <button class="btn" onclick="startGame('capitals')">NAME THE CAPITAL</button>
+                <button class="btn" onclick="startGame('trivia')">STATE TRIVIA</button>
+            </div>
+
+            <!-- GAME SCREEN -->
+            <div id="game-screen" class="screen">
+                <div id="hud">
+                    <span id="score-display">SCORE: 000</span>
+                    <span id="timer-display">TIME: 00:00</span>
+                    <button style="font-family:'VT323'; background:none; border:1px solid #000; cursor:pointer;" onclick="quitGame()">QUIT</button>
+                </div>
+
+                <!-- MAP MODE ELEMENTS -->
+                <div id="map-game-ui" style="display:none; width: 100%; height: 100%; flex-direction: column;">
+                    <div id="map-container">
+                        <!-- SVG injected here -->
+                    </div>
+                    <div id="feedback-bar" class="visible">Locating Data...</div>
+                </div>
+
+                <!-- CAPITALS MODE ELEMENTS -->
+                <div id="capitals-game-ui" style="display:none; width: 100%; height: 100%; flex-direction: column; align-items: center;">
+                    <div class="quiz-area">
+                        <div id="capital-prompt">WHAT IS THE CAPITAL OF</div>
+                        <div id="capital-state-preview"></div>
+                        <div id="capital-state-name">CALIFORNIA</div>
+                        
+                        <div id="options-grid">
+                            <button class="option-btn" id="opt-0" onclick="checkCapital(0)">SACRAMENTO</button>
+                            <button class="option-btn" id="opt-1" onclick="checkCapital(1)">AUSTIN</button>
+                            <button class="option-btn" id="opt-2" onclick="checkCapital(2)">BOSTON</button>
+                            <button class="option-btn" id="opt-3" onclick="checkCapital(3)">ALBANY</button>
+                        </div>
+                    </div>
+                    <div id="feedback-bar" style="margin-top:auto;"></div>
+                </div>
+
+                <!-- TRIVIA MODE ELEMENTS (NEW) -->
+                <div id="trivia-game-ui" style="display:none; width: 100%; height: 100%; flex-direction: column; align-items: center;">
+                    <div class="quiz-area">
+                        <div id="trivia-prompt">TRIVIA TIME</div>
+                        <div id="trivia-state-name">ALABAMA</div>
+                        <div id="trivia-question-text">Question goes here...</div>
+                        
+                        <div id="trivia-options-grid">
+                            <button class="option-btn" id="triv-0" onclick="checkTrivia(0)">Option A</button>
+                            <button class="option-btn" id="triv-1" onclick="checkTrivia(1)">Option B</button>
+                            <button class="option-btn" id="triv-2" onclick="checkTrivia(2)">Option C</button>
+                            <button class="option-btn" id="triv-3" onclick="checkTrivia(3)">Option D</button>
+                        </div>
+                    </div>
+                    <div id="feedback-bar" style="margin-top:auto;"></div>
+                </div>
+
+            </div>
+
+            <!-- REPORT MODAL -->
+            <div id="report-modal">
+                <div id="report-card">
+                    <h2>REPORT CARD</h2>
+                    <h1 id="report-percent" style="font-size:80px; margin: 10px 0;">100%</h1>
+                    <p id="report-fraction">10 / 10 Correct</p>
+                    <button class="btn" onclick="closeReport()">OK</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+<script>
+    // --- GLOBAL STATE ---
+    const state = {
+        allData: [],
+        triviaData: [],
+        gameMode: null, // 'map', 'capitals', or 'trivia'
+        score: 0,
+        startTime: 0,
+        timerInterval: null,
+        pool: [],
+        currentIdx: 0,
+        
+        // Map Game Specifics
+        roundAttempts: 0,
+        roundResolved: false,
+
+        // Stats for report
+        testTotal: 0,
+        testCorrect: 0,
+
+        // Quiz specific
+        currentOptions: [],
+        currentCorrectIndex: -1
+    };
+
+    const SVG_WIDTH = 959;
+    const SVG_HEIGHT = 593;
+
+    function showScreen(screenId) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(screenId).classList.add('active');
+    }
+
+    // --- INITIALIZATION ---
+    async function loadAllData() {
+        try {
+            // Load Map Data
+            const mapRes = await fetch('state_data.json');
+            if (!mapRes.ok) throw new Error("Could not load state_data.json");
+            const mapData = await mapRes.json();
+            if(!Array.isArray(mapData)) throw new Error("Map JSON is not array");
+            state.allData = mapData;
+
+            // Load Trivia Data
+            const trivRes = await fetch('trivia_data.json');
+            if (!trivRes.ok) throw new Error("Could not load trivia_data.json");
+            const trivData = await trivRes.json();
+            if(!Array.isArray(trivData)) throw new Error("Trivia JSON is not array");
+            state.triviaData = trivData;
+
+            // Pre-render SVG
+            renderMap();
+            
+            console.log("All data loaded successfully");
+            
+        } catch (e) {
+            console.error(e);
+            alert("Error loading data files. Please ensure both .json files are present.");
+        }
+    }
+
+    function renderMap() {
+        const ns = "http://www.w3.org/2000/svg";
+        const svg = document.createElementNS(ns, "svg");
+        svg.setAttribute("viewBox", `0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`);
+        svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+
+        state.allData.forEach(s => {
+            const path = document.createElementNS(ns, "path");
+            path.setAttribute("d", s.path);
+            path.setAttribute("id", "map-" + s.name.replace(/\s/g, '')); 
+            path.setAttribute("data-name", s.name);
+            
+            path.addEventListener('click', (e) => {
+                if (state.gameMode === 'map') handleMapClick(s);
+            });
+
+            svg.appendChild(path);
+        });
+
+        const container = document.getElementById('map-container');
+        container.innerHTML = '';
+        container.appendChild(svg);
+    }
+
+    // --- GAME LOOP ---
+
+    function startGame(mode) {
+        if (state.allData.length === 0 || state.triviaData.length === 0) {
+            alert("Still loading data... please wait a moment.");
+            return;
+        }
+
+        state.gameMode = mode;
+        state.score = 0;
+        state.testTotal = 0;
+        state.testCorrect = 0;
+        state.startTime = Date.now();
+        state.currentIdx = 0;
+
+        // Reset feedback visibility
+        const feedback = document.querySelectorAll('#feedback-bar');
+        feedback.forEach(f => {
+            f.classList.remove('visible');
+            f.className = ''; // wipe correct/wrong classes
+        });
+
+        // POOL CREATION
+        if (mode === 'map' || mode === 'capitals') {
+            state.pool = [...state.allData].sort(() => 0.5 - Math.random());
+            state.pool = state.pool.slice(0, 10);
+        } else if (mode === 'trivia') {
+            state.pool = [...state.triviaData].sort(() => 0.5 - Math.random());
+            state.pool = state.pool.slice(0, 10);
+        }
+
+        document.getElementById('score-display').innerText = "SCORE: 0";
+        showScreen('game-screen');
+
+        if (state.timerInterval) clearInterval(state.timerInterval);
+        state.timerInterval = setInterval(updateTimer, 1000);
+
+        // UI TOGGLE
+        document.getElementById('map-game-ui').style.display = 'none';
+        document.getElementById('capitals-game-ui').style.display = 'none';
+        document.getElementById('trivia-game-ui').style.display = 'none';
+
+        if (mode === 'map') {
+            document.getElementById('map-game-ui').style.display = 'flex';
+            document.querySelector('#map-game-ui #feedback-bar').classList.add('visible');
+            loadMapRound();
+        } else if (mode === 'capitals') {
+            document.getElementById('capitals-game-ui').style.display = 'flex';
+            loadCapitalRound();
+        } else if (mode === 'trivia') {
+            document.getElementById('trivia-game-ui').style.display = 'flex';
+            loadTriviaRound();
+        }
+    }
+
+    function quitGame() {
+        if (state.timerInterval) clearInterval(state.timerInterval);
+        document.getElementById('report-modal').style.display = 'none';
+        showScreen('menu-screen');
+        
+        document.querySelectorAll('path').forEach(p => {
+            p.classList.remove('correct', 'wrong', 'highlighted');
+            p.style.fill = '';
+        });
+    }
+
+    function updateTimer() {
+        const delta = Math.floor((Date.now() - state.startTime) / 1000);
+        const m = Math.floor(delta / 60).toString().padStart(2, '0');
+        const s = (delta % 60).toString().padStart(2, '0');
+        document.getElementById('timer-display').innerText = `TIME: ${m}:${s}`;
+    }
+
+    // --- CAPITALS GAME LOGIC ---
+
+    function loadCapitalRound() {
+        if (state.currentIdx >= state.pool.length) {
+            showReport();
+            return;
+        }
+
+        const targetState = state.pool[state.currentIdx];
+        
+        document.getElementById('capital-state-name').innerText = targetState.name.toUpperCase();
+        
+        const feedback = document.querySelector('#capitals-game-ui #feedback-bar');
+        feedback.classList.remove('visible');
+        feedback.className = ''; 
+
+        // State Outline
+        const previewContainer = document.getElementById('capital-state-preview');
+        previewContainer.innerHTML = ''; 
+
+        const ns = "http://www.w3.org/2000/svg";
+        const svg = document.createElementNS(ns, "svg");
+        svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+        
+        const path = document.createElementNS(ns, "path");
+        path.setAttribute("d", targetState.path);
+        svg.appendChild(path);
+        previewContainer.appendChild(svg);
+
+        setTimeout(() => {
+            try {
+                const bbox = path.getBBox();
+                const pad = 30; 
+                svg.setAttribute("viewBox", `${bbox.x - pad} ${bbox.y - pad} ${bbox.width + (pad*2)} ${bbox.height + (pad*2)}`);
+            } catch(e) {}
+        }, 10);
+
+        // Options
+        const correctOption = { name: targetState.capital, isCorrect: true };
+        const distractorsPool = state.allData.filter(s => s.name !== targetState.name);
+        const shuffledDistractors = distractorsPool.sort(() => 0.5 - Math.random()).slice(0, 3);
+        
+        const options = shuffledDistractors.map(s => ({ name: s.capital, isCorrect: false }));
+        options.push(correctOption);
+
+        state.currentOptions = options.sort(() => 0.5 - Math.random());
+
+        for(let i=0; i<4; i++) {
+            const btn = document.getElementById(`opt-${i}`);
+            btn.innerText = state.currentOptions[i].name.toUpperCase();
+            btn.classList.remove('correct-anim', 'wrong-anim');
+            btn.disabled = false;
+        }
+    }
+
+    function checkCapital(idx) {
+        const selected = state.currentOptions[idx];
+        const btn = document.getElementById(`opt-${idx}`);
+        const feedback = document.querySelector('#capitals-game-ui #feedback-bar');
+        
+        feedback.classList.add('visible');
+
+        for(let i=0; i<4; i++) document.getElementById(`opt-${i}`).disabled = true;
+
+        state.testTotal++;
+
+        if (selected.isCorrect) {
+            state.testCorrect++;
+            state.score += 10;
+            document.getElementById('score-display').innerText = "SCORE: " + state.score;
+            
+            btn.classList.add('correct-anim');
+            feedback.className = 'correct visible';
+            feedback.innerText = "CORRECT!";
+            
+            setTimeout(nextCapitalRound, 1000);
+        } else {
+            btn.classList.add('wrong-anim');
+            feedback.className = 'wrong visible';
+            
+            const correctCap = state.currentOptions.find(o => o.isCorrect).name.toUpperCase();
+            const stateName = document.getElementById('capital-state-name').innerText;
+            feedback.innerText = `NO... THE CAPITAL OF ${stateName} IS ${correctCap}`;
+            
+            state.currentOptions.forEach((opt, i) => {
+                if(opt.isCorrect) document.getElementById(`opt-${i}`).classList.add('correct-anim');
+            });
+
+            const win = document.getElementById('game-screen');
+            void win.offsetWidth; win.classList.add('shake-effect');
+
+            setTimeout(nextCapitalRound, 3000); 
+        }
+    }
+    
+    function nextCapitalRound() {
+        const win = document.getElementById('game-screen');
+        win.classList.remove('shake-effect');
+        state.currentIdx++;
+        loadCapitalRound();
+    }
+
+    // --- TRIVIA GAME LOGIC (NEW) ---
+
+    function loadTriviaRound() {
+        if (state.currentIdx >= state.pool.length) {
+            showReport();
+            return;
+        }
+
+        const qData = state.pool[state.currentIdx];
+        
+        // Setup Text
+        document.getElementById('trivia-state-name').innerText = qData.state.toUpperCase();
+        document.getElementById('trivia-question-text').innerText = qData.question;
+        
+        const feedback = document.querySelector('#trivia-game-ui #feedback-bar');
+        feedback.classList.remove('visible');
+        feedback.className = ''; 
+
+        // Setup Options
+        // The JSON has "options" array. One is correct. "answer" field tells us which.
+        // We need to shuffle them but know which one matches "answer".
+        
+        // Map options to objects
+        let optionsObj = qData.options.map(opt => ({
+            text: opt,
+            isCorrect: opt === qData.answer
+        }));
+
+        // Shuffle
+        state.currentOptions = optionsObj.sort(() => 0.5 - Math.random());
+
+        // Render Buttons
+        for(let i=0; i<4; i++) {
+            const btn = document.getElementById(`triv-${i}`);
+            btn.innerText = state.currentOptions[i].text;
+            btn.classList.remove('correct-anim', 'wrong-anim');
+            btn.disabled = false;
+        }
+    }
+
+    function checkTrivia(idx) {
+        const selected = state.currentOptions[idx];
+        const btn = document.getElementById(`triv-${idx}`);
+        const feedback = document.querySelector('#trivia-game-ui #feedback-bar');
+        
+        feedback.classList.add('visible');
+
+        for(let i=0; i<4; i++) document.getElementById(`triv-${i}`).disabled = true;
+
+        state.testTotal++;
+
+        if (selected.isCorrect) {
+            state.testCorrect++;
+            state.score += 15; // Trivia is harder, more points!
+            document.getElementById('score-display').innerText = "SCORE: " + state.score;
+            
+            btn.classList.add('correct-anim');
+            feedback.className = 'correct visible';
+            feedback.innerText = "CORRECT!";
+            
+            setTimeout(nextTriviaRound, 1000);
+        } else {
+            btn.classList.add('wrong-anim');
+            feedback.className = 'wrong visible';
+            
+            const correctText = state.currentOptions.find(o => o.isCorrect).text;
+            feedback.innerText = `WRONG. ANSWER WAS: ${correctText.toUpperCase()}`;
+            
+            state.currentOptions.forEach((opt, i) => {
+                if(opt.isCorrect) document.getElementById(`triv-${i}`).classList.add('correct-anim');
+            });
+
+            const win = document.getElementById('game-screen');
+            void win.offsetWidth; win.classList.add('shake-effect');
+
+            setTimeout(nextTriviaRound, 3000); 
+        }
+    }
+
+    function nextTriviaRound() {
+        const win = document.getElementById('game-screen');
+        win.classList.remove('shake-effect');
+        state.currentIdx++;
+        loadTriviaRound();
+    }
+
+
+    // --- MAP GAME LOGIC ---
+    
+    function loadMapRound() {
+        state.roundAttempts = 0;
+        state.roundResolved = false;
+
+        document.querySelectorAll('path').forEach(p => {
+            p.classList.remove('highlighted', 'wrong', 'correct');
+        });
+
+        if (state.currentIdx >= state.pool.length) {
+            showReport();
+            return;
+        }
+
+        const target = state.pool[state.currentIdx];
+        const feedback = document.querySelector('#map-game-ui #feedback-bar');
+        feedback.className = 'visible';
+        feedback.innerText = `FIND: ${target.name.toUpperCase()}`;
+    }
+
+    function handleMapClick(clickedState) {
+        if (state.roundResolved) return;
+        if (state.currentIdx >= state.pool.length) return;
+
+        const correct = state.pool[state.currentIdx];
+        const feedback = document.querySelector('#map-game-ui #feedback-bar');
+        const win = document.getElementById('game-screen');
+        const clickedEl = document.getElementById("map-" + clickedState.name.replace(/\s/g, ''));
+
+        if (state.roundAttempts === 0) state.testTotal++;
+
+        if (clickedState.name === correct.name) {
+            state.roundResolved = true;
+            clickedEl.classList.add('correct');
+            feedback.className = 'correct visible';
+            
+            if (state.roundAttempts === 0) {
+                state.testCorrect++;
+                state.score += 15;
+                feedback.innerText = "EXCELLENT!";
+            } else {
+                state.score += 5;
+                feedback.innerText = "CORRECT!";
+            }
+            
+            document.getElementById('score-display').innerText = "SCORE: " + state.score;
+            setTimeout(nextMapRound, 1000);
+
+        } else {
+            // Reset Shake
+            win.classList.remove('shake-effect');
+            void win.offsetWidth; 
+            win.classList.add('shake-effect');
+            
+            clickedEl.classList.add('wrong');
+            
+            if (state.roundAttempts === 0) {
+                state.roundAttempts++;
+                feedback.classList.add('wrong');
+                feedback.classList.add('visible');
+                feedback.innerText = `THAT IS ${clickedState.name.toUpperCase()}. TRY AGAIN.`;
+            } else {
+                state.roundResolved = true;
+                
+                const correctID = "map-" + correct.name.replace(/\s/g, '');
+                const correctEl = document.getElementById(correctID);
+                if (correctEl) correctEl.classList.add('highlighted');
+
+                feedback.classList.add('wrong');
+                feedback.classList.add('visible');
+                feedback.innerText = `WRONG. THAT WAS ${correct.name.toUpperCase()}.`;
+                
+                setTimeout(() => {
+                    nextMapRound();
+                }, 2500);
+            }
+        }
+    }
+
+    function nextMapRound() {
+        const win = document.getElementById('game-screen');
+        win.classList.remove('shake-effect');
+        state.currentIdx++;
+        loadMapRound();
+    }
+
+    // --- REPORT CARD ---
+    function showReport() {
+        const pct = state.testTotal === 0 ? 0 : Math.round((state.testCorrect / state.testTotal) * 100);
+        document.getElementById('report-percent').innerText = pct + "%";
+        document.getElementById('report-fraction').innerText = `${state.testCorrect} / ${state.testTotal} Correct`;
+        document.getElementById('report-modal').style.display = 'flex';
+    }
+
+    function closeReport() {
+        document.getElementById('report-modal').style.display = 'none';
+        quitGame();
+    }
+
+    // Load data
+    loadAllData(); 
+
+</script>
+</body>
+</html>
