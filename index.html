@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MacAtlas v2.7</title>
+    <title>MacAtlas v3.0 - Trivia Edition</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -126,7 +126,7 @@
             cursor: pointer;
             box-shadow: 3px 3px 0 #000;
             transition: transform 0.1s, box-shadow 0.1s;
-            min-width: 200px;
+            min-width: 250px;
             text-align: center;
         }
 
@@ -235,8 +235,8 @@
             font-weight: bold;
         }
 
-        /* CAPITALS GAME UI */
-        #capitals-area {
+        /* GENERIC GAME UI (Used for Capitals and Trivia) */
+        .quiz-area {
             flex: 1;
             width: 100%;
             display: flex;
@@ -246,10 +246,12 @@
             overflow: hidden; 
         }
 
-        #capital-prompt {
+        #capital-prompt, #trivia-prompt {
             font-size: 28px;
             margin-bottom: 10px;
             text-align: center;
+            max-width: 800px;
+            line-height: 1.2;
         }
 
         #capital-state-preview {
@@ -273,15 +275,27 @@
             cursor: default;
         }
 
-        #capital-state-name {
+        #capital-state-name, #trivia-state-name {
             font-size: 48px;
             font-weight: bold;
             margin-bottom: 20px;
             text-decoration: underline;
             text-align: center;
         }
+        
+        /* Specific Trivia Styles */
+        #trivia-question-text {
+            font-size: 32px;
+            text-align: center;
+            margin: 20px;
+            max-width: 700px;
+            min-height: 100px; /* Prevent jumpiness */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
 
-        #options-grid {
+        #options-grid, #trivia-options-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 15px;
@@ -299,6 +313,11 @@
             box-shadow: 4px 4px 0 #000;
             transition: all 0.1s;
             text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 60px;
+            line-height: 1.1;
         }
 
         .option-btn:hover {
@@ -365,7 +384,7 @@
     <div id="main-window">
         <div id="title-bar">
             <div id="close-btn" onclick="quitGame()"></div>
-            <div id="title-text">MacAtlas v2.7</div>
+            <div id="title-text">MacAtlas v3.0</div>
         </div>
 
         <div id="content">
@@ -377,6 +396,7 @@
                 <div style="height: 20px;"></div>
                 <button class="btn" onclick="startGame('map')">FIND THE STATE</button>
                 <button class="btn" onclick="startGame('capitals')">NAME THE CAPITAL</button>
+                <button class="btn" onclick="startGame('trivia')">STATE TRIVIA</button>
             </div>
 
             <!-- GAME SCREEN -->
@@ -397,9 +417,8 @@
 
                 <!-- CAPITALS MODE ELEMENTS -->
                 <div id="capitals-game-ui" style="display:none; width: 100%; height: 100%; flex-direction: column; align-items: center;">
-                    <div id="capitals-area">
+                    <div class="quiz-area">
                         <div id="capital-prompt">WHAT IS THE CAPITAL OF</div>
-                        <!-- New Container for State Outline -->
                         <div id="capital-state-preview"></div>
                         <div id="capital-state-name">CALIFORNIA</div>
                         
@@ -410,9 +429,26 @@
                             <button class="option-btn" id="opt-3" onclick="checkCapital(3)">ALBANY</button>
                         </div>
                     </div>
-                    <!-- Feedback bar at bottom -->
                     <div id="feedback-bar" style="margin-top:auto;"></div>
                 </div>
+
+                <!-- TRIVIA MODE ELEMENTS (NEW) -->
+                <div id="trivia-game-ui" style="display:none; width: 100%; height: 100%; flex-direction: column; align-items: center;">
+                    <div class="quiz-area">
+                        <div id="trivia-prompt">TRIVIA TIME</div>
+                        <div id="trivia-state-name">ALABAMA</div>
+                        <div id="trivia-question-text">Question goes here...</div>
+                        
+                        <div id="trivia-options-grid">
+                            <button class="option-btn" id="triv-0" onclick="checkTrivia(0)">Option A</button>
+                            <button class="option-btn" id="triv-1" onclick="checkTrivia(1)">Option B</button>
+                            <button class="option-btn" id="triv-2" onclick="checkTrivia(2)">Option C</button>
+                            <button class="option-btn" id="triv-3" onclick="checkTrivia(3)">Option D</button>
+                        </div>
+                    </div>
+                    <div id="feedback-bar" style="margin-top:auto;"></div>
+                </div>
+
             </div>
 
             <!-- REPORT MODAL -->
@@ -432,7 +468,8 @@
     // --- GLOBAL STATE ---
     const state = {
         allData: [],
-        gameMode: null, // 'map' or 'capitals'
+        triviaData: [],
+        gameMode: null, // 'map', 'capitals', or 'trivia'
         score: 0,
         startTime: 0,
         timerInterval: null,
@@ -447,8 +484,9 @@
         testTotal: 0,
         testCorrect: 0,
 
-        // Capitals specific
-        currentOptions: [] 
+        // Quiz specific
+        currentOptions: [],
+        currentCorrectIndex: -1
     };
 
     const SVG_WIDTH = 959;
@@ -460,25 +498,30 @@
     }
 
     // --- INITIALIZATION ---
-    async function fetchStateData() {
+    async function loadAllData() {
         try {
-            const response = await fetch('state_data.json');
-            if (!response.ok) throw new Error("Could not load state_data.json");
-            
-            const data = await response.json();
-            if(!Array.isArray(data)) throw new Error("JSON is not an array");
-            
-            state.allData = data;
-            
+            // Load Map Data
+            const mapRes = await fetch('state_data.json');
+            if (!mapRes.ok) throw new Error("Could not load state_data.json");
+            const mapData = await mapRes.json();
+            if(!Array.isArray(mapData)) throw new Error("Map JSON is not array");
+            state.allData = mapData;
+
+            // Load Trivia Data
+            const trivRes = await fetch('trivia_data.json');
+            if (!trivRes.ok) throw new Error("Could not load trivia_data.json");
+            const trivData = await trivRes.json();
+            if(!Array.isArray(trivData)) throw new Error("Trivia JSON is not array");
+            state.triviaData = trivData;
+
             // Pre-render SVG
             renderMap();
             
-            // No loading screen logic needed as we start on Menu
-            console.log("Data loaded successfully");
+            console.log("All data loaded successfully");
             
         } catch (e) {
             console.error(e);
-            alert("Error loading state data. Please refresh.");
+            alert("Error loading data files. Please ensure both .json files are present.");
         }
     }
 
@@ -509,7 +552,7 @@
     // --- GAME LOOP ---
 
     function startGame(mode) {
-        if (state.allData.length === 0) {
+        if (state.allData.length === 0 || state.triviaData.length === 0) {
             alert("Still loading data... please wait a moment.");
             return;
         }
@@ -519,10 +562,23 @@
         state.testTotal = 0;
         state.testCorrect = 0;
         state.startTime = Date.now();
-        
-        state.pool = [...state.allData].sort(() => 0.5 - Math.random());
-        state.pool = state.pool.slice(0, 10);
         state.currentIdx = 0;
+
+        // Reset feedback visibility
+        const feedback = document.querySelectorAll('#feedback-bar');
+        feedback.forEach(f => {
+            f.classList.remove('visible');
+            f.className = ''; // wipe correct/wrong classes
+        });
+
+        // POOL CREATION
+        if (mode === 'map' || mode === 'capitals') {
+            state.pool = [...state.allData].sort(() => 0.5 - Math.random());
+            state.pool = state.pool.slice(0, 10);
+        } else if (mode === 'trivia') {
+            state.pool = [...state.triviaData].sort(() => 0.5 - Math.random());
+            state.pool = state.pool.slice(0, 10);
+        }
 
         document.getElementById('score-display').innerText = "SCORE: 0";
         showScreen('game-screen');
@@ -530,20 +586,21 @@
         if (state.timerInterval) clearInterval(state.timerInterval);
         state.timerInterval = setInterval(updateTimer, 1000);
 
-        // Reset feedback bar visibility
-        const feedback = document.querySelectorAll('#feedback-bar');
-        feedback.forEach(f => f.classList.remove('visible'));
+        // UI TOGGLE
+        document.getElementById('map-game-ui').style.display = 'none';
+        document.getElementById('capitals-game-ui').style.display = 'none';
+        document.getElementById('trivia-game-ui').style.display = 'none';
 
         if (mode === 'map') {
             document.getElementById('map-game-ui').style.display = 'flex';
-            document.getElementById('capitals-game-ui').style.display = 'none';
-            // Map mode needs feedback visible immediately to say "Find X"
             document.querySelector('#map-game-ui #feedback-bar').classList.add('visible');
             loadMapRound();
-        } else {
-            document.getElementById('map-game-ui').style.display = 'none';
+        } else if (mode === 'capitals') {
             document.getElementById('capitals-game-ui').style.display = 'flex';
             loadCapitalRound();
+        } else if (mode === 'trivia') {
+            document.getElementById('trivia-game-ui').style.display = 'flex';
+            loadTriviaRound();
         }
     }
 
@@ -577,12 +634,11 @@
         
         document.getElementById('capital-state-name').innerText = targetState.name.toUpperCase();
         
-        // Hide feedback bar for new question
         const feedback = document.querySelector('#capitals-game-ui #feedback-bar');
         feedback.classList.remove('visible');
         feedback.className = ''; 
 
-        // --- RENDER STATE OUTLINE ---
+        // State Outline
         const previewContainer = document.getElementById('capital-state-preview');
         previewContainer.innerHTML = ''; 
 
@@ -600,12 +656,10 @@
                 const bbox = path.getBBox();
                 const pad = 30; 
                 svg.setAttribute("viewBox", `${bbox.x - pad} ${bbox.y - pad} ${bbox.width + (pad*2)} ${bbox.height + (pad*2)}`);
-            } catch(e) {
-                console.error("Auto-zoom failed", e);
-            }
+            } catch(e) {}
         }, 10);
 
-        // --- OPTIONS GENERATION ---
+        // Options
         const correctOption = { name: targetState.capital, isCorrect: true };
         const distractorsPool = state.allData.filter(s => s.name !== targetState.name);
         const shuffledDistractors = distractorsPool.sort(() => 0.5 - Math.random()).slice(0, 3);
@@ -626,11 +680,8 @@
     function checkCapital(idx) {
         const selected = state.currentOptions[idx];
         const btn = document.getElementById(`opt-${idx}`);
-        
-        // Helper to find the specific feedback bar for this screen
         const feedback = document.querySelector('#capitals-game-ui #feedback-bar');
         
-        // Show the bar now that we have an answer
         feedback.classList.add('visible');
 
         for(let i=0; i<4; i++) document.getElementById(`opt-${i}`).disabled = true;
@@ -643,16 +694,15 @@
             document.getElementById('score-display').innerText = "SCORE: " + state.score;
             
             btn.classList.add('correct-anim');
-            feedback.className = 'correct visible'; // keep visible
+            feedback.className = 'correct visible';
             feedback.innerText = "CORRECT!";
             
             setTimeout(nextCapitalRound, 1000);
         } else {
             btn.classList.add('wrong-anim');
-            feedback.className = 'wrong visible'; // keep visible
+            feedback.className = 'wrong visible';
             
-            // Format: "No... the capital of [State] is [Capital]"
-            const correctCap = getCorrectCapitalName().toUpperCase();
+            const correctCap = state.currentOptions.find(o => o.isCorrect).name.toUpperCase();
             const stateName = document.getElementById('capital-state-name').innerText;
             feedback.innerText = `NO... THE CAPITAL OF ${stateName} IS ${correctCap}`;
             
@@ -666,17 +716,98 @@
             setTimeout(nextCapitalRound, 3000); 
         }
     }
-
-    function getCorrectCapitalName() {
-        const correct = state.currentOptions.find(o => o.isCorrect);
-        return correct ? correct.name : "";
-    }
-
+    
     function nextCapitalRound() {
         const win = document.getElementById('game-screen');
         win.classList.remove('shake-effect');
         state.currentIdx++;
         loadCapitalRound();
+    }
+
+    // --- TRIVIA GAME LOGIC (NEW) ---
+
+    function loadTriviaRound() {
+        if (state.currentIdx >= state.pool.length) {
+            showReport();
+            return;
+        }
+
+        const qData = state.pool[state.currentIdx];
+        
+        // Setup Text
+        document.getElementById('trivia-state-name').innerText = qData.state.toUpperCase();
+        document.getElementById('trivia-question-text').innerText = qData.question;
+        
+        const feedback = document.querySelector('#trivia-game-ui #feedback-bar');
+        feedback.classList.remove('visible');
+        feedback.className = ''; 
+
+        // Setup Options
+        // The JSON has "options" array. One is correct. "answer" field tells us which.
+        // We need to shuffle them but know which one matches "answer".
+        
+        // Map options to objects
+        let optionsObj = qData.options.map(opt => ({
+            text: opt,
+            isCorrect: opt === qData.answer
+        }));
+
+        // Shuffle
+        state.currentOptions = optionsObj.sort(() => 0.5 - Math.random());
+
+        // Render Buttons
+        for(let i=0; i<4; i++) {
+            const btn = document.getElementById(`triv-${i}`);
+            btn.innerText = state.currentOptions[i].text;
+            btn.classList.remove('correct-anim', 'wrong-anim');
+            btn.disabled = false;
+        }
+    }
+
+    function checkTrivia(idx) {
+        const selected = state.currentOptions[idx];
+        const btn = document.getElementById(`triv-${idx}`);
+        const feedback = document.querySelector('#trivia-game-ui #feedback-bar');
+        
+        feedback.classList.add('visible');
+
+        for(let i=0; i<4; i++) document.getElementById(`triv-${i}`).disabled = true;
+
+        state.testTotal++;
+
+        if (selected.isCorrect) {
+            state.testCorrect++;
+            state.score += 15; // Trivia is harder, more points!
+            document.getElementById('score-display').innerText = "SCORE: " + state.score;
+            
+            btn.classList.add('correct-anim');
+            feedback.className = 'correct visible';
+            feedback.innerText = "CORRECT!";
+            
+            setTimeout(nextTriviaRound, 1000);
+        } else {
+            btn.classList.add('wrong-anim');
+            feedback.className = 'wrong visible';
+            
+            const correctText = state.currentOptions.find(o => o.isCorrect).text;
+            feedback.innerText = `WRONG. ANSWER WAS: ${correctText.toUpperCase()}`;
+            
+            state.currentOptions.forEach((opt, i) => {
+                if(opt.isCorrect) document.getElementById(`triv-${i}`).classList.add('correct-anim');
+            });
+
+            const win = document.getElementById('game-screen');
+            void win.offsetWidth; win.classList.add('shake-effect');
+
+            setTimeout(nextTriviaRound, 3000); 
+        }
+    }
+
+    function nextTriviaRound() {
+        const win = document.getElementById('game-screen');
+        win.classList.remove('shake-effect');
+        state.currentIdx++;
+        loadTriviaRound();
     }
 
 
@@ -702,7 +833,7 @@
     }
 
     function handleMapClick(clickedState) {
-        if (state.roundResolved) return; // Ignore clicks if round is done
+        if (state.roundResolved) return;
         if (state.currentIdx >= state.pool.length) return;
 
         const correct = state.pool[state.currentIdx];
@@ -710,24 +841,18 @@
         const win = document.getElementById('game-screen');
         const clickedEl = document.getElementById("map-" + clickedState.name.replace(/\s/g, ''));
 
-        // Check if this is the first interaction to increment total counter
-        if (state.roundAttempts === 0) {
-            state.testTotal++;
-        }
+        if (state.roundAttempts === 0) state.testTotal++;
 
         if (clickedState.name === correct.name) {
-            // --- CORRECT ANSWER ---
             state.roundResolved = true;
             clickedEl.classList.add('correct');
             feedback.className = 'correct visible';
             
             if (state.roundAttempts === 0) {
-                // 1st Try: 15 pts
                 state.testCorrect++;
                 state.score += 15;
                 feedback.innerText = "EXCELLENT!";
             } else {
-                // 2nd Try: 5 pts
                 state.score += 5;
                 feedback.innerText = "CORRECT!";
             }
@@ -736,9 +861,7 @@
             setTimeout(nextMapRound, 1000);
 
         } else {
-            // --- WRONG ANSWER ---
-            
-            // Reset and trigger shake effect
+            // Reset Shake
             win.classList.remove('shake-effect');
             void win.offsetWidth; 
             win.classList.add('shake-effect');
@@ -746,26 +869,21 @@
             clickedEl.classList.add('wrong');
             
             if (state.roundAttempts === 0) {
-                // Failed 1st Try -> Allow 2nd Try
                 state.roundAttempts++;
-                feedback.classList.add('wrong', 'visible');
+                feedback.classList.add('wrong');
+                feedback.classList.add('visible');
                 feedback.innerText = `THAT IS ${clickedState.name.toUpperCase()}. TRY AGAIN.`;
             } else {
-                // Failed 2nd Try -> FAILED ROUND
-                state.roundResolved = true; // Lock input immediately
+                state.roundResolved = true;
                 
                 const correctID = "map-" + correct.name.replace(/\s/g, '');
                 const correctEl = document.getElementById(correctID);
-                
-                // Show correct answer highlighting
-                if (correctEl) {
-                    correctEl.classList.add('highlighted');
-                }
+                if (correctEl) correctEl.classList.add('highlighted');
 
-                feedback.classList.add('wrong', 'visible');
+                feedback.classList.add('wrong');
+                feedback.classList.add('visible');
                 feedback.innerText = `WRONG. THAT WAS ${correct.name.toUpperCase()}.`;
                 
-                // Advance after 2.5 seconds
                 setTimeout(() => {
                     nextMapRound();
                 }, 2500);
@@ -793,662 +911,8 @@
         quitGame();
     }
 
-    // Start loading data immediately
-    fetchStateData(); 
-
-</script>
-</body>
-</html><!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MacAtlas v2.0</title>
-    
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
-
-    <style>
-        :root {
-            --bg-color: #888;
-            --window-bg: #ffffff;
-            --border-color: #000000;
-        }
-
-        body {
-            font-family: 'VT323', monospace;
-            background-color: var(--bg-color);
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh; 
-            height: 100dvh;
-            overflow: hidden; 
-            box-sizing: border-box;
-            background-image: 
-                linear-gradient(45deg, #aaa 25%, transparent 25%), 
-                linear-gradient(-45deg, #aaa 25%, transparent 25%), 
-                linear-gradient(45deg, transparent 75%, #aaa 75%), 
-                linear-gradient(-45deg, transparent 75%, #aaa 75%);
-            background-size: 4px 4px;
-            user-select: none;
-            color: #000;
-        }
-
-        .window {
-            background: var(--window-bg);
-            border: 2px solid var(--border-color);
-            box-shadow: 6px 6px 0px rgba(0,0,0,0.3);
-            width: 95%;
-            max-width: 800px;
-            max-height: 98dvh; 
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            border-radius: 2px;
-        }
-        
-        .window.shake-effect { animation: shake 0.4s ease-in-out; }
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            20%, 60% { transform: translateX(-8px); }
-            40%, 80% { transform: translateX(8px); }
-        }
-
-        .title-bar {
-            background: repeating-linear-gradient(0deg, #fff, #fff 2px, #000 2px, #000 4px);
-            height: 32px; min-height: 32px;
-            border-bottom: 2px solid var(--border-color);
-            display: flex; align-items: center; justify-content: center;
-            padding: 0 10px; flex-shrink: 0;
-        }
-
-        .title-box {
-            background: #fff; padding: 0 15px; font-weight: bold; font-size: 1.3rem;
-            border-left: 2px solid #000; border-right: 2px solid #000; letter-spacing: 1px;
-        }
-
-        .content {
-            padding: 15px; display: flex; flex-direction: column; gap: 10px;
-            overflow-y: auto; flex: 1; position: relative;
-        }
-
-        /* --- SCREENS --- */
-        .screen { display: none; height: 100%; flex-direction: column; }
-        .screen.active { display: flex; }
-
-        .menu-grid {
-            display: flex; gap: 20px; justify-content: center; margin-top: 40px; flex-wrap: wrap;
-        }
-        .menu-card {
-            border: 2px solid #000; padding: 20px; text-align: center; width: 220px;
-            cursor: pointer; transition: transform 0.1s, box-shadow 0.1s;
-            box-shadow: 4px 4px 0 #ccc; display: flex; flex-direction: column; align-items: center;
-        }
-        .menu-card:hover { transform: translateY(-2px); box-shadow: 4px 6px 0 #ccc; }
-        .menu-card:active { transform: translateY(2px); box-shadow: 2px 2px 0 #ccc; background: #000; color: #fff; }
-        .menu-title { font-size: 1.8rem; font-weight: bold; margin-top: 10px; }
-        .menu-desc { font-size: 1.2rem; font-style: italic; }
-
-        /* --- GAME UI --- */
-        .stats-bar {
-            display: flex; justify-content: space-between;
-            border-bottom: 2px dashed #000; padding-bottom: 5px; margin-bottom: 10px;
-            flex-shrink: 0; font-size: 1.4rem;
-        }
-
-        /* Map Containers */
-        .map-container {
-            flex-grow: 1; border: 2px solid #000; background: #fff;
-            display: flex; align-items: center; justify-content: center;
-            overflow: hidden; position: relative; padding: 10px;
-        }
-        
-        /* Single State SVG (Puzzle Piece) */
-        .state-svg {
-            width: 100%; height: 100%; max-height: 400px;
-            filter: drop-shadow(4px 4px 0px #ccc);
-        }
-        .state-path {
-            fill: #fff; stroke: #000; stroke-width: 2; vector-effect: non-scaling-stroke;
-            transition: fill 0.3s;
-        }
-
-        /* Full US Map SVG */
-        .usa-svg {
-            width: 100%; height: 100%;
-        }
-        .usa-state {
-            fill: #fff; stroke: #000; stroke-width: 1; vector-effect: non-scaling-stroke;
-            cursor: pointer; transition: fill 0.2s;
-        }
-        .usa-state:hover { fill: #ddd; }
-        .usa-state.highlighted { fill: #000 !important; } /* Black when correct/selected */
-        .usa-state.wrong { fill: #aaa; } /* Grey when wrong */
-
-        .question-text {
-            text-align: center; font-size: 1.8rem; margin-bottom: 10px; font-weight: bold;
-        }
-
-        .choices-grid {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
-            margin-top: auto; padding-top: 10px;
-        }
-
-        .feedback-area {
-            min-height: 40px; text-align: center; font-weight: bold; margin-top: 10px;
-            flex-shrink: 0; font-size: 1.4rem; border-top: 1px dotted #000; padding-top: 5px;
-        }
-        .feedback-area.correct { background: #fff; color: #000; }
-        .feedback-area.wrong { background: #000; color: #fff; }
-
-        /* Buttons */
-        .btn {
-            font-family: 'VT323', monospace; background: #fff; border: 2px solid #000;
-            padding: 10px; font-size: 1.3rem; cursor: pointer;
-            box-shadow: 3px 3px 0 #000; text-align: center;
-        }
-        .btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 #000; background: #000; color: #fff; }
-        .btn.selected { background: #000; color: #fff; }
-        .btn-small { font-size: 1rem; padding: 5px 10px; width: auto; display: inline-block; margin-top: 10px; }
-        .btn-block { width: 100%; }
-
-        /* Modal */
-        .modal-overlay {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5); display: none;
-            justify-content: center; align-items: center; z-index: 100;
-        }
-        .modal-window {
-            background: #fff; border: 2px solid #000;
-            box-shadow: 8px 8px 0 rgba(0,0,0,0.5);
-            width: 85%; padding: 20px; text-align: center;
-        }
-        .report-score { font-size: 3rem; font-weight: bold; margin: 10px 0; }
-
-        .icon-map { font-size: 3rem; }
-
-    </style>
-</head>
-<body>
-
-<div class="window" id="main-window">
-    <div class="title-bar">
-        <div class="title-box">MacAtlas v2.0</div>
-    </div>
-    
-    <div class="content">
-        
-        <div id="menu-screen" class="screen active">
-            <div style="text-align: center; margin-top: 10px; border: 2px solid #000; padding: 10px;">
-                <h1>US GEOGRAPHY</h1>
-                <div>TOTAL SCORE: <span id="total-score">LOADING...</span></div>
-            </div>
-            
-            <div class="menu-grid">
-                <div class="menu-card" onclick="startGame('map')">
-                    <span class="icon-map">🇺🇸</span>
-                    <div class="menu-title">Map Search</div>
-                    <div class="menu-desc">Find the State</div>
-                </div>
-                <div class="menu-card" onclick="startGame('state')">
-                    <span class="icon-map">🧩</span>
-                    <div class="menu-title">Identify Shape</div>
-                    <div class="menu-desc">Name the Piece</div>
-                </div>
-                <div class="menu-card" onclick="startGame('capital')">
-                    <span class="icon-map">🏛️</span>
-                    <div class="menu-title">Capitals</div>
-                    <div class="menu-desc">Name the Capital</div>
-                </div>
-            </div>
-
-            <div style="margin-top: auto; display: flex; gap: 10px;">
-                 <button class="btn btn-block" style="border: 2px dashed #000;" onclick="startTest()">TAKE TEST</button>
-                 <button class="btn btn-danger" onclick="resetData()">X</button>
-            </div>
-        </div>
-
-        <div id="puzzle-screen" class="screen">
-            <div class="stats-bar">
-                <span id="puzzle-mode-label">Mode</span>
-                <span>Score: <span id="puzzle-score">0</span></span>
-            </div>
-            
-            <div class="question-text" id="puzzle-question">...</div>
-
-            <div class="map-container">
-                <svg id="state-display" class="state-svg" preserveAspectRatio="xMidYMid meet">
-                    <path id="state-path" class="state-path" d="" />
-                </svg>
-            </div>
-
-            <div id="puzzle-choices" class="choices-grid"></div>
-            <div id="puzzle-feedback" class="feedback-area"></div>
-            <div style="text-align: center;">
-                <button class="btn btn-small" onclick="quitGame()">Main Menu</button>
-            </div>
-        </div>
-
-        <div id="map-screen" class="screen">
-            <div class="stats-bar">
-                <span>Find the State</span>
-                <span>Score: <span id="map-score">0</span></span>
-            </div>
-
-            <div class="question-text">Where is <span id="map-target" style="text-decoration: underline;">...</span>?</div>
-
-            <div class="map-container">
-                <svg id="usa-map" class="usa-svg" viewBox="0 0 960 600" preserveAspectRatio="xMidYMid meet">
-                    <g id="map-group"></g>
-                </svg>
-            </div>
-
-            <div id="map-feedback" class="feedback-area"></div>
-            <div style="text-align: center;">
-                <button class="btn btn-small" onclick="quitGame()">Main Menu</button>
-            </div>
-        </div>
-
-    </div>
-
-    <div id="report-modal" class="modal-overlay">
-        <div class="modal-window">
-            <div style="font-size: 2rem; border-bottom: 2px dashed #000;">TEST REPORT</div>
-            <div class="report-score" id="report-percent">100%</div>
-            <div id="report-fraction" style="font-size: 1.5rem;">10 / 10</div>
-            <button class="btn btn-block" onclick="closeReport()">Close</button>
-        </div>
-    </div>
-</div>
-
-<script>
-    // --- STATE DATA (NEW ASYNCHRONOUS LOADING) ---
-    // Start with an empty array. It will be populated after fetching.
-    let STATE_DATA = [];
-
-    // Utility function to render the full US map from the data
-    function renderUSMap() {
-        const mapGroup = document.getElementById('map-group');
-        mapGroup.innerHTML = ''; // Clear previous map content
-
-        STATE_DATA.forEach(state => {
-            const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-            path.setAttribute('d', state.path);
-            path.setAttribute('id', 'map-' + state.name.replace(/\s/g, ''));
-            path.setAttribute('class', 'usa-state');
-            path.dataset.stateName = state.name;
-            // Assumes handleMapClick function is defined elsewhere in the script
-            path.addEventListener('click', handleMapClick); 
-            mapGroup.appendChild(path);
-        });
-    }
-
-    // Function to fetch the data file
-    async function fetchStateData() {
-        const totalScore = document.getElementById('total-score');
-        
-        // 1. Visually indicate loading
-        totalScore.innerText = "LOADING DATA...";
-        
-        // 2. Disable menu buttons to prevent game start before data is ready
-        document.querySelectorAll('.menu-grid .menu-card, .btn-block').forEach(btn => {
-            btn.style.pointerEvents = 'none';
-            btn.style.opacity = '0.5';
-        });
-
-        try {
-            // *** CORRECTED PATH: Assumes state_data.json is in the same directory ***
-            const response = await fetch('state_data.json'); 
-            // **********************************************************************
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            // 3. Populate the global STATE_DATA array
-            STATE_DATA = await response.json();
-
-            // 4. Re-enable menu buttons and initialize data-dependent components
-            document.querySelectorAll('.menu-grid .menu-card, .btn-block').forEach(btn => {
-                btn.style.pointerEvents = '';
-                btn.style.opacity = '1';
-            });
-            
-            // Initial map render is now possible
-            renderUSMap(); 
-            // Load saved score (assuming loadData is a function defined later in the script)
-            loadData(); 
-
-        } catch (error) {
-            console.error("Could not load state data:", error);
-            totalScore.innerText = "ERROR LOADING DATA";
-            document.getElementById('menu-screen').innerHTML = `
-                <h1 style="color:red;">ERROR</h1>
-                <p>Could not load <strong>state_data.json</strong>.</p>
-                <p>Verify the file exists in the same folder as index.html, and check the console for details.</p>
-                <p>If running locally, some browsers require a local web server (like Live Server).</p>
-            `;
-        }
-    }
-
-    // --- END NEW ASYNCHRONOUS LOADING BLOCK ---
-
-    // --- STATE MANAGEMENT ---
-    let state = {
-        score: 0,
-        mode: null, // 'map', 'state', 'capital', or 'test'
-        pool: [],
-        currentIdx: 0,
-        testTotal: 50,
-        testCorrect: 0
-    };
-
-    // --- UTILITIES ---
-    function getRandomElements(arr, count, exclude = null) {
-        const shuffled = arr.filter(e => e !== exclude).sort(() => 0.5 - Math.random());
-        return shuffled.slice(0, count);
-    }
-
-    function shuffleArray(array) {
-        for (let i = array.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [array[i], array[j]] = [array[j], array[i]];
-        }
-    }
-
-    // --- PERSISTENCE ---
-    function saveData() {
-        localStorage.setItem('macatlas20_state', JSON.stringify({ score: state.score }));
-        document.getElementById('total-score').innerText = state.score;
-        document.getElementById('puzzle-score').innerText = state.score;
-        document.getElementById('map-score').innerText = state.score;
-    }
-
-    function loadData() {
-        const savedState = localStorage.getItem('macatlas20_state');
-        if (savedState) {
-            const data = JSON.parse(savedState);
-            state.score = data.score || 0;
-        }
-        document.getElementById('total-score').innerText = state.score;
-        document.getElementById('puzzle-score').innerText = state.score;
-        document.getElementById('map-score').innerText = state.score;
-    }
-
-    function resetData() {
-        if(confirm("Are you sure you want to reset your score to 0?")) {
-            localStorage.removeItem('macatlas20_state');
-            state.score = 0;
-            saveData();
-        }
-    }
-
-    // --- GAME LOGIC ---
-    function startGame(mode) {
-        state.mode = mode;
-        state.pool = [...STATE_DATA].sort(() => Math.random() - 0.5);
-        state.currentIdx = 0;
-        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-        if (mode === 'map') {
-            document.getElementById('map-screen').classList.add('active');
-            initMapGame();
-        } else {
-            document.getElementById('puzzle-screen').classList.add('active');
-            document.getElementById('puzzle-mode-label').innerText = mode === 'state' ? "Identify State" : "State Capitals";
-            document.getElementById('puzzle-score').innerText = state.score;
-            loadPuzzleRound();
-        }
-    }
-
-    function startTest() {
-        state.mode = 'test';
-        state.testCorrect = 0;
-        state.testTotal = STATE_DATA.length;
-        state.pool = [...STATE_DATA].sort(() => Math.random() - 0.5);
-        state.currentIdx = 0;
-        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-        document.getElementById('puzzle-screen').classList.add('active');
-        document.getElementById('puzzle-mode-label').innerText = `Test Mode (${state.testCorrect}/${state.testTotal})`;
-        loadPuzzleRound();
-    }
-    
-    function quitGame() {
-        document.querySelectorAll('.usa-state').forEach(path => path.classList.remove('highlighted', 'wrong'));
-        document.getElementById('puzzle-feedback').innerText = "";
-        document.getElementById('map-feedback').innerText = "";
-        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-        document.getElementById('menu-screen').classList.add('active');
-        loadData(); // Update score display on exit
-    }
-
-    // --- PUZZLE GAME (Shape/Capital) ---
-
-    function loadPuzzleRound() {
-        const correctState = state.pool[state.currentIdx];
-        const displayPath = document.getElementById('state-path');
-        const choicesGrid = document.getElementById('puzzle-choices');
-        const feedback = document.getElementById('puzzle-feedback');
-        
-        choicesGrid.innerHTML = '';
-        feedback.innerText = "";
-        feedback.classList.remove('correct', 'wrong');
-
-        // 1. Set the question text
-        let question;
-        let correctAnswer;
-        let choiceProperty;
-
-        if (state.mode === 'state' || state.mode === 'test') {
-            question = "Which state is this?";
-            correctAnswer = correctState.name;
-            choiceProperty = 'name';
-        } else if (state.mode === 'capital') {
-            question = `What is the capital of ${correctState.name}?`;
-            correctAnswer = correctState.capital;
-            choiceProperty = 'capital';
-        }
-
-        document.getElementById('puzzle-question').innerText = question;
-
-        // 2. Set the state shape/path (if not capital mode)
-        if (state.mode !== 'capital') {
-            displayPath.setAttribute('d', correctState.path);
-
-            // Determine the bounding box for proper scaling
-            const svg = document.getElementById('state-display');
-            // This is a rough estimation function for the viewBox, to center the state.
-            const viewBox = getPathViewBox(correctState.path);
-            svg.setAttribute('viewBox', viewBox);
-        } else {
-             // For capital mode, clear the map
-             displayPath.setAttribute('d', '');
-             document.getElementById('state-display').setAttribute('viewBox', '0 0 960 600');
-        }
-
-        // 3. Generate choice buttons
-        let incorrectStates = getRandomElements(STATE_DATA, 3, correctState);
-        let choices = [correctState, ...incorrectStates];
-        shuffleArray(choices);
-
-        choices.forEach(choice => {
-            const btn = document.createElement('button');
-            btn.classList.add('btn', 'btn-block');
-            btn.dataset.answer = choice[choiceProperty];
-            btn.innerText = choice[choiceProperty].toUpperCase();
-            btn.addEventListener('click', checkPuzzleAnswer);
-            choicesGrid.appendChild(btn);
-        });
-        
-        // This is a rough estimation function for the viewBox, to center the state.
-        function getPathViewBox(d) {
-            const numbers = d.match(/-?\d+(\.\d+)?/g).map(Number);
-            
-            if (numbers.length === 0) return '0 0 960 600';
-
-            const minX = Math.min(...numbers.filter((_, i) => i % 2 === 0));
-            const minY = Math.min(...numbers.filter((_, i) => i % 2 !== 0));
-            const maxX = Math.max(...numbers.filter((_, i) => i % 2 === 0));
-            const maxY = Math.max(...numbers.filter((_, i) => i % 2 !== 0));
-            
-            const padding = 20; 
-            const x = minX - padding;
-            const y = minY - padding;
-            const width = (maxX - minX) + 2 * padding;
-            const height = (maxY - minY) + 2 * padding;
-            
-            return `${x} ${y} ${width} ${height}`;
-        }
-
-    }
-
-    function checkPuzzleAnswer(event) {
-        const correct = state.pool[state.currentIdx];
-        const selectedAnswer = event.target.dataset.answer;
-        const feedback = document.getElementById('puzzle-feedback');
-        const win = document.getElementById('main-window');
-        const btns = document.querySelectorAll('#puzzle-choices .btn');
-
-        // Disable all buttons immediately after first click
-        btns.forEach(btn => btn.removeEventListener('click', checkPuzzleAnswer));
-
-        let correctValue;
-        if (state.mode === 'state' || state.mode === 'test') {
-            correctValue = correct.name;
-        } else if (state.mode === 'capital') {
-            correctValue = correct.capital;
-        }
-
-        let isCorrect = selectedAnswer === correctValue;
-
-        if (isCorrect) {
-            if(state.mode === 'test') state.testCorrect++;
-            else state.score += 10;
-            
-            event.target.classList.add('selected');
-            feedback.classList.add('correct');
-            feedback.innerText = "CORRECT!";
-            
-            saveData();
-            
-            if(state.mode === 'test') setTimeout(nextTestRound, 1000);
-            else setTimeout(nextPuzzleRound, 1000);
-
-        } else {
-            void win.offsetWidth; win.classList.add('shake-effect');
-            feedback.classList.add('wrong');
-            feedback.innerText = `WRONG! The correct answer is ${correctValue.toUpperCase()}.`;
-            
-            // Highlight the correct button
-            btns.forEach(btn => {
-                if(btn.dataset.answer === correctValue) {
-                    btn.classList.add('selected');
-                }
-            });
-
-            if(state.mode === 'test') setTimeout(nextTestRound, 2000);
-            else setTimeout(nextPuzzleRound, 2000);
-        }
-    }
-
-    function nextPuzzleRound() {
-        state.currentIdx++;
-        if(state.currentIdx >= state.pool.length) state.currentIdx = 0; // Loop indefinitely
-        loadPuzzleRound();
-    }
-
-    function nextTestRound() {
-        state.currentIdx++;
-        if(state.currentIdx >= state.testTotal) {
-            showReport();
-        } else {
-            document.getElementById('puzzle-mode-label').innerText = `Test Mode (${state.testCorrect}/${state.testTotal})`;
-            loadPuzzleRound();
-        }
-    }
-
-
-    // --- MAP GAME (Find State) ---
-    
-    function initMapGame() {
-        // Map is rendered only once during the loading phase by fetchStateData -> renderUSMap()
-        // Here we just ensure all states are reset and we load the first question.
-        document.querySelectorAll('.usa-state').forEach(path => path.classList.remove('highlighted', 'wrong'));
-        loadMapRound();
-    }
-
-    function loadMapRound() {
-        const correctState = state.pool[state.currentIdx];
-        const targetElement = document.getElementById('map-target');
-        const feedback = document.getElementById('map-feedback');
-        const allStates = document.querySelectorAll('.usa-state');
-        
-        feedback.innerText = "";
-        feedback.classList.remove('correct', 'wrong');
-
-        // Reset map highlights and re-enable click listeners
-        allStates.forEach(path => {
-            path.classList.remove('highlighted', 'wrong');
-            path.addEventListener('click', handleMapClick);
-        });
-
-        // Set the question
-        targetElement.innerText = correctState.name;
-    }
-
-    function handleMapClick(event) {
-        const correct = state.pool[state.currentIdx];
-        const clickedState = STATE_DATA.find(s => s.name === event.target.dataset.stateName);
-        const feedback = document.getElementById('map-feedback');
-        const allStates = document.querySelectorAll('.usa-state');
-
-        // Disable all click listeners
-        allStates.forEach(path => path.removeEventListener('click', handleMapClick));
-        
-        // Remove shake class for reset
-        const win = document.getElementById('main-window');
-        win.classList.remove('shake-effect');
-
-        if (clickedState.name === correct.name) {
-            document.getElementById("map-" + correct.name.replace(/\s/g, '')).classList.add('highlighted');
-            feedback.classList.add('correct');
-            feedback.innerText = "FOUND IT!";
-            state.score += 15; saveData();
-            setTimeout(nextMapRound, 1000);
-        } else {
-            void win.offsetWidth; win.classList.add('shake-effect');
-            document.getElementById("map-" + clickedState.name.replace(/\s/g, '')).classList.add('wrong');
-            document.getElementById("map-" + correct.name.replace(/\s/g, '')).classList.add('highlighted'); // Show correct
-            feedback.classList.add('wrong');
-            feedback.innerText = `THAT IS ${clickedState.name.toUpperCase()}. FIND ${correct.name.toUpperCase()}.`;
-            setTimeout(nextMapRound, 2000);
-        }
-    }
-
-    function nextMapRound() {
-        state.currentIdx++;
-        if(state.currentIdx >= state.pool.length) state.currentIdx = 0;
-        loadMapRound();
-    }
-
-    // --- REPORT CARD ---
-    function showReport() {
-        const pct = Math.round((state.testCorrect / state.testTotal) * 100);
-        document.getElementById('report-percent').innerText = pct + "%";
-        document.getElementById('report-fraction').innerText = `${state.testCorrect} / ${state.testTotal} Correct`;
-        document.getElementById('report-modal').style.display = 'flex';
-    }
-
-    function closeReport() {
-        document.getElementById('report-modal').style.display = 'none';
-        quitGame();
-    }
-
-    // This must be the last thing to run in the script block.
-    // It starts the data loading process immediately after the page loads.
-    fetchStateData(); 
+    // Load data
+    loadAllData(); 
 
 </script>
 </body>
