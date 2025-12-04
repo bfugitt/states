@@ -1,0 +1,302 @@
+[
+    {
+        "state": "Alabama",
+        "question": "Which city in Alabama is known as the 'Rocket City' for its aerospace history?",
+        "options": ["Huntsville", "Birmingham", "Mobile", "Montgomery"],
+        "answer": "Huntsville"
+    },
+    {
+        "state": "Alaska",
+        "question": "Alaska has a sand desert with dunes over 100 feet high. Where is it?",
+        "options": ["Kobuk Valley", "Denali", "Anchorage", "Juneau"],
+        "answer": "Kobuk Valley"
+    },
+    {
+        "state": "Arizona",
+        "question": "Which official state tie does Arizona famously celebrate?",
+        "options": ["Bola Tie", "Bow Tie", "Ascot", "Cravat"],
+        "answer": "Bola Tie"
+    },
+    {
+        "state": "Arkansas",
+        "question": "Arkansas is home to the only active one of these mines in the US open to the public:",
+        "options": ["Diamond Mine", "Gold Mine", "Ruby Mine", "Emerald Mine"],
+        "answer": "Diamond Mine"
+    },
+    {
+        "state": "California",
+        "question": "What is the official state animal of California, seen on its flag?",
+        "options": ["Grizzly Bear", "Black Bear", "Mountain Lion", "Golden Eagle"],
+        "answer": "Grizzly Bear"
+    },
+    {
+        "state": "Colorado",
+        "question": "This city in Colorado has the highest elevation of any major city in the USA:",
+        "options": ["Leadville", "Denver", "Aspen", "Boulder"],
+        "answer": "Leadville"
+    },
+    {
+        "state": "Connecticut",
+        "question": "Connecticut is home to the first hamburger, served at which establishment?",
+        "options": ["Louis' Lunch", "Frank's Diner", "Sally's Apizza", "Mystic Pizza"],
+        "answer": "Louis' Lunch"
+    },
+    {
+        "state": "Delaware",
+        "question": "Why is Delaware known as 'The First State'?",
+        "options": ["First to ratify Constitution", "First to be settled", "First to have a capital", "First to print money"],
+        "answer": "First to ratify Constitution"
+    },
+    {
+        "state": "Florida",
+        "question": "Which Florida city is the oldest continuously inhabited European settlement in the US?",
+        "options": ["St. Augustine", "Miami", "Pensacola", "Key West"],
+        "answer": "St. Augustine"
+    },
+    {
+        "state": "Georgia",
+        "question": "Georgia is famous for being the top producer of which nut?",
+        "options": ["Peanuts", "Pecans", "Walnuts", "Almonds"],
+        "answer": "Peanuts"
+    },
+    {
+        "state": "Hawaii",
+        "question": "Hawaii is the only US state that commercially grows which stimulant?",
+        "options": ["Coffee", "Tea", "Cocoa", "Tobacco"],
+        "answer": "Coffee"
+    },
+    {
+        "state": "Idaho",
+        "question": "Idaho produces about one-third of all US potatoes. What is its nickname?",
+        "options": ["The Gem State", "The Spud State", "The Potato State", "The Mountain State"],
+        "answer": "The Gem State"
+    },
+    {
+        "state": "Illinois",
+        "question": "The Chicago River is famous for being dyed what color on St. Patrick's Day?",
+        "options": ["Green", "Blue", "Gold", "Red"],
+        "answer": "Green"
+    },
+    {
+        "state": "Indiana",
+        "question": "The town of Santa Claus, Indiana, receives over half a million of these annually:",
+        "options": ["Letters to Santa", "Ornaments", "Reindeer", "Fruitcakes"],
+        "answer": "Letters to Santa"
+    },
+    {
+        "state": "Iowa",
+        "question": "Iowa is the only state whose east and west borders are formed entirely by:",
+        "options": ["Rivers", "Mountains", "Lakes", "Highways"],
+        "answer": "Rivers"
+    },
+    {
+        "state": "Kansas",
+        "question": "Kansas is the geographical center of what?",
+        "options": ["The Lower 48 States", "North America", "The Wheat Belt", "Tornado Alley"],
+        "answer": "The Lower 48 States"
+    },
+    {
+        "state": "Kentucky",
+        "question": "More than 95% of the world's supply of what spirit comes from Kentucky?",
+        "options": ["Bourbon", "Rye Whiskey", "Moonshine", "Scotch"],
+        "answer": "Bourbon"
+    },
+    {
+        "state": "Louisiana",
+        "question": "Louisiana is the only state that has 'Parishes' instead of what?",
+        "options": ["Counties", "Districts", "Boroughs", "Provinces"],
+        "answer": "Counties"
+    },
+    {
+        "state": "Maine",
+        "question": "Maine is the closest US state to which continent?",
+        "options": ["Africa", "Europe", "South America", "Asia"],
+        "answer": "Africa"
+    },
+    {
+        "state": "Maryland",
+        "question": "The official state sport of Maryland is traditionally which medieval activity?",
+        "options": ["Jousting", "Archery", "Fencing", "Falconry"],
+        "answer": "Jousting"
+    },
+    {
+        "state": "Massachusetts",
+        "question": "Where was the first subway system in the United States built?",
+        "options": ["Boston", "New York", "Chicago", "Philadelphia"],
+        "answer": "Boston"
+    },
+    {
+        "state": "Michigan",
+        "question": "Michigan has more of these than any other state:",
+        "options": ["Lighthouses", "Lakes", "Cars", "Bridges"],
+        "answer": "Lighthouses"
+    },
+    {
+        "state": "Minnesota",
+        "question": "The Mall of America in Minnesota is big enough to fit how many Yankee Stadiums?",
+        "options": ["7", "3", "5", "9"],
+        "answer": "7"
+    },
+    {
+        "state": "Mississippi",
+        "question": "The world's first heart transplant was performed on an animal in Mississippi. Which animal?",
+        "options": ["Chimpanzee", "Pig", "Dog", "Sheep"],
+        "answer": "Chimpanzee"
+    },
+    {
+        "state": "Missouri",
+        "question": "The Gateway Arch in St. Louis is the tallest what in the US?",
+        "options": ["Man-made Monument", "Building", "Statue", "Tower"],
+        "answer": "Man-made Monument"
+    },
+    {
+        "state": "Montana",
+        "question": "Montana has the largest migratory herd of which animal in the nation?",
+        "options": ["Elk", "Bison", "Antelope", "Deer"],
+        "answer": "Elk"
+    },
+    {
+        "state": "Nebraska",
+        "question": "Nebraska is the birthplace of which sugary drink meant to imitate fruit punch?",
+        "options": ["Kool-Aid", "Gatorade", "Hawaiian Punch", "Tang"],
+        "answer": "Kool-Aid"
+    },
+    {
+        "state": "Nevada",
+        "question": "More of this animal live in Nevada than people:",
+        "options": ["Wild Horses", "Scorpions", "Rattlesnakes", "Jackrabbits"],
+        "answer": "Wild Horses"
+    },
+    {
+        "state": "New Hampshire",
+        "question": "New Hampshire was the first state to declare independence from whom?",
+        "options": ["Great Britain", "France", "Massachusetts", "New York"],
+        "answer": "Great Britain"
+    },
+    {
+        "state": "New Jersey",
+        "question": "New Jersey has the most of these eateries per capita in the world:",
+        "options": ["Diners", "Pizzerias", "Delis", "Bagel Shops"],
+        "answer": "Diners"
+    },
+    {
+        "state": "New Mexico",
+        "question": "Santa Fe, New Mexico is the highest and oldest one of these in the US:",
+        "options": ["State Capital", "City", "Fort", "Mission"],
+        "answer": "State Capital"
+    },
+    {
+        "state": "New York",
+        "question": "The first capital of the United States was actually which city?",
+        "options": ["New York City", "Philadelphia", "Washington DC", "Boston"],
+        "answer": "New York City"
+    },
+    {
+        "state": "North Carolina",
+        "question": "The Wright Brothers made their first flight in this NC town:",
+        "options": ["Kitty Hawk", "Charlotte", "Raleigh", "Asheville"],
+        "answer": "Kitty Hawk"
+    },
+    {
+        "state": "North Dakota",
+        "question": "North Dakota holds the Guinness World Record for the most of these made at once:",
+        "options": ["Snow Angels", "Snowmen", "Ice Sculptures", "Igloos"],
+        "answer": "Snow Angels"
+    },
+    {
+        "state": "Ohio",
+        "question": "Ohio is the only state whose flag is not this shape:",
+        "options": ["Rectangular", "Square", "Triangular", "Circular"],
+        "answer": "Rectangular"
+    },
+    {
+        "state": "Oklahoma",
+        "question": "Oklahoma's state capitol building is unique because it sits on top of an active:",
+        "options": ["Oil Well", "Gold Mine", "Fault Line", "Spring"],
+        "answer": "Oil Well"
+    },
+    {
+        "state": "Oregon",
+        "question": "Crater Lake in Oregon is famous for being the deepest lake in the US and for its:",
+        "options": ["Blue Color", "Hot Springs", "Sea Monster", "Salt Water"],
+        "answer": "Blue Color"
+    },
+    {
+        "state": "Pennsylvania",
+        "question": "The Declaration of Independence was signed in this building:",
+        "options": ["Independence Hall", "Liberty Hall", "Constitution Hall", "Congress Hall"],
+        "answer": "Independence Hall"
+    },
+    {
+        "state": "Rhode Island",
+        "question": "Despite its name, Rhode Island is mostly what?",
+        "options": ["Mainland", "Island", "Water", "Forest"],
+        "answer": "Mainland"
+    },
+    {
+        "state": "South Carolina",
+        "question": "This animal is the only wild monkey population in the US, found on Morgan Island, SC:",
+        "options": ["Rhesus Macaque", "Chimpanzee", "Spider Monkey", "Baboon"],
+        "answer": "Rhesus Macaque"
+    },
+    {
+        "state": "South Dakota",
+        "question": "Mount Rushmore features the heads of Washington, Jefferson, Lincoln, and:",
+        "options": ["Roosevelt", "Kennedy", "Grant", "Adams"],
+        "answer": "Roosevelt"
+    },
+    {
+        "state": "Tennessee",
+        "question": "Graceland, the home of Elvis Presley, is located in which city?",
+        "options": ["Memphis", "Nashville", "Knoxville", "Chattanooga"],
+        "answer": "Memphis"
+    },
+    {
+        "state": "Texas",
+        "question": "Texas is the only state to have the flags of how many different nations fly over it?",
+        "options": ["6", "4", "5", "3"],
+        "answer": "6"
+    },
+    {
+        "state": "Utah",
+        "question": "The Great Salt Lake is much saltier than the ocean, allowing swimmers to:",
+        "options": ["Float easily", "Sink fast", "Change color", "Walk on water"],
+        "answer": "Float easily"
+    },
+    {
+        "state": "Vermont",
+        "question": "Vermont is the largest producer of this sweet breakfast topping in the US:",
+        "options": ["Maple Syrup", "Honey", "Berry Jam", "Butter"],
+        "answer": "Maple Syrup"
+    },
+    {
+        "state": "Virginia",
+        "question": "Virginia is known as the 'Mother of Presidents' because how many were born there?",
+        "options": ["8", "5", "10", "6"],
+        "answer": "8"
+    },
+    {
+        "state": "Washington",
+        "question": "Washington produces more of this fruit than any other state:",
+        "options": ["Apples", "Oranges", "Cherries", "Peaches"],
+        "answer": "Apples"
+    },
+    {
+        "state": "West Virginia",
+        "question": "New River Gorge Bridge is famous for an annual festival where people do what?",
+        "options": ["BASE Jump", "Bungee Jump", "Rock Climb", "Tightrope Walk"],
+        "answer": "BASE Jump"
+    },
+    {
+        "state": "Wisconsin",
+        "question": "Wisconsin is famously known as 'America's Dairyland' and produces the most:",
+        "options": ["Cheese", "Milk", "Butter", "Yogurt"],
+        "answer": "Cheese"
+    },
+    {
+        "state": "Wyoming",
+        "question": "Wyoming was the first state to grant women the right to:",
+        "options": ["Vote", "Drive", "Own Land", "Run for Office"],
+        "answer": "Vote"
+    }
+]
