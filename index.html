@@ -11,7 +11,7 @@
 
     <style>
         :root {
-            --bg-color: #BBBBBB; /* Lighter Mac desktop gray */
+            --bg-color: #888;
             --window-bg: #ffffff;
             --border-color: #000000;
         }
@@ -28,12 +28,11 @@
             height: 100dvh;
             overflow: hidden; 
             box-sizing: border-box;
-            /* Update background pattern to use the lighter gray base */
             background-image: 
-                linear-gradient(45deg, #AAAAAA 25%, transparent 25%), 
-                linear-gradient(-45deg, #AAAAAA 25%, transparent 25%), 
-                linear-gradient(45deg, transparent 75%, #AAAAAA 75%), 
-                linear-gradient(-45deg, transparent 75%, #AAAAAA 75%);
+                linear-gradient(45deg, #aaa 25%, transparent 25%), 
+                linear-gradient(-45deg, #aaa 25%, transparent 25%), 
+                linear-gradient(45deg, transparent 75%, #aaa 75%), 
+                linear-gradient(-45deg, transparent 75%, #aaa 75%);
             background-size: 4px 4px;
             user-select: none;
             color: #000;
@@ -114,11 +113,8 @@
             filter: drop-shadow(4px 4px 0px #ccc);
         }
         .state-path {
-            fill: #FFFFFF; /* White fill for unselected states */
-            stroke: #000000; /* Black border */
-            stroke-width: 2; 
-            vector-effect: non-scaling-stroke;
-            transition: none; /* Removed fill transition for snappier B/W look */
+            fill: #fff; stroke: #000; stroke-width: 2; vector-effect: non-scaling-stroke;
+            transition: fill 0.3s;
         }
 
         /* Full US Map SVG */
@@ -130,18 +126,8 @@
             cursor: pointer; transition: fill 0.2s;
         }
         .usa-state:hover { fill: #ddd; }
-        
-        /* System 6 Highlight/Error Styles (Grayscale) */
-        .usa-state.highlighted { 
-            fill: #000000 !important; /* Pure black fill for selection */
-            stroke: #000000 !important; 
-            stroke-width: 1px !important;
-        } 
-        .usa-state.wrong { 
-            fill: #CCCCCC !important; /* Light gray fill when wrong */
-            stroke: #000000 !important; /* Thick black stroke on mistake */
-            stroke-width: 2px !important;
-        }
+        .usa-state.highlighted { fill: #000 !important; } /* Black when correct/selected */
+        .usa-state.wrong { fill: #aaa; } /* Grey when wrong */
 
         .question-text {
             text-align: center; font-size: 1.8rem; margin-bottom: 10px; font-weight: bold;
@@ -182,9 +168,8 @@
             width: 85%; padding: 20px; text-align: center;
         }
         .report-score { font-size: 3rem; font-weight: bold; margin: 10px 0; }
-        
-        /* New icon styling for MacAtlas aesthetic */
-        .icon-symbol { font-size: 3rem; line-height: 1; }
+
+        .icon-map { font-size: 3rem; }
 
     </style>
 </head>
@@ -200,21 +185,24 @@
         <div id="menu-screen" class="screen active">
             <div style="text-align: center; margin-top: 10px; border: 2px solid #000; padding: 10px;">
                 <h1>US GEOGRAPHY</h1>
-                <div>TOTAL SCORE: <span id="total-score">0</span></div>
+                <div>TOTAL SCORE: <span id="total-score">LOADING...</span></div>
             </div>
             
             <div class="menu-grid">
                 <div class="menu-card" onclick="startGame('map')">
-                    <span class="icon-symbol">&#9632;</span> <div class="menu-title">Map Search</div>
+                    <span class="icon-map">🇺🇸</span>
+                    <div class="menu-title">Map Search</div>
                     <div class="menu-desc">Find the State</div>
                 </div>
                 <div class="menu-card" onclick="startGame('state')">
-                    <span class="icon-symbol">&#9632;</span> <div class="menu-title">Identify Shape</div>
+                    <span class="icon-map">🧩</span>
+                    <div class="menu-title">Identify Shape</div>
                     <div class="menu-desc">Name the Piece</div>
                 </div>
                 <div class="menu-card" onclick="startGame('capital')">
-                    <span class="icon-symbol">&#9632;</span> <div class="menu-title">Capitals</div>
-                    <div class="menu-desc">Name the State (New!)</div>
+                    <span class="icon-map">🏛️</span>
+                    <div class="menu-title">Capitals</div>
+                    <div class="menu-desc">Name the Capital</div>
                 </div>
             </div>
 
@@ -278,264 +266,363 @@
 </div>
 
 <script>
-    // --- STATE DATA ---
-    // NOTE: Your full state data should be pasted here. Using the first two as samples.
-    const STATE_DATA = [
-    { 
-        name: "Alabama", 
-        capital: "Montgomery", 
-        path: "M641.60,383.98L641.53,383.71L655.89,382.59L666.47,381.85L685.22,380.02L689.24,379.66L689.95,382.44L693.26,393.95L702.45,427.02L703.08,427.37L702.89,428.12L703.86,428.88L704.51,431.76L705.34,433.08L706.68,434.29L707.09,435.86L707.77,436.49L707.31,438.85L708.67,439.24L709.55,439.93L708.94,441.02L707.51,442.08L706.72,443.19L707.07,444.26L707.13,445.95L706.85,447.67L705.92,450.09L706.63,452.45L706.60,453.32L708.08,454.86L708.61,457.14L708.22,458.33L708.42,459.16L708.10,460.76L708.32,462.30L707.90,462.77L708.27,464.79L709.86,466.40L710.78,468.75L693.62,470.84L681.54,472.09L669.54,473.10L660.71,473.96L660.95,474.69L660.27,477.00L662.04,478.67L662.50,479.60L665.08,480.93L665.42,481.91L664.62,484.73L665.37,485.88L666.27,486.41L665.25,486.98L664.89,488.46L664.07,489.17L664.67,489.48L663.71,490.06L661.08,491.00L657.58,491.81L655.16,491.97L655.61,491.20L656.49,491.63L658.91,490.89L659.08,490.22L657.16,488.43L655.91,487.80L655.23,486.08L655.67,484.90L655.38,483.14L654.83,482.23L653.39,481.73L652.43,482.72L652.65,483.45L651.93,485.85L652.05,488.86L651.59,490.19L650.53,490.36L650.53,489.65L649.06,488.99L647.99,489.36L647.65,488.97L646.47,489.49L645.11,478.26L642.72,459.46L642.19,455.02L642.48,443.88L643.03,413.15L643.42,396.06L643.69,386.19L642.58,385.58L641.60,383.98Z"
-    },
-    { 
-        name: "Alaska", 
-        capital: "Juneau", 
-        path: "M50.71,504.55L52.86,503.66L55.49,502.33L59.13,500.74L61.25,500.05L63.86,499.55L65.68,499.74L65.71,500.84L64.92,502.84L65.25,503.92L67.15,504.22L68.52,504.15L69.61,504.79L70.46,504.49L71.38,505.05L72.50,503.45L74.27,503.69L73.93,502.84L72.72,502.22L71.45,502.49L71.72,501.19L70.69,499.42L70.03,499.23L69.71,498.24L70.74,497.63L71.54,499.03L71.23,500.07L72.61,501.88L73.42,501.65L71.89,499.57L72.32,498.31L73.23,497.60L72.42,496.99L70.22,497.29L66.54,495.60L66.66,494.58L66.23,492.28L62.93,487.90L61.42,486.89L60.83,485.72L59.36,484.41L60.38,484.20L60.96,483.26L61.51,480.76L64.02,481.37L67.17,481.31L69.46,479.98L70.46,478.83L71.05,476.49L71.66,474.99L74.00,472.21L75.26,471.38L76.83,471.82L78.19,471.34L79.94,470.08L81.61,468.40L82.93,467.88L84.24,468.66L86.66,468.12L87.62,467.39L89.34,465.06L90.08,465.03L92.50,466.05L92.69,466.65L91.43,467.66L91.52,468.63L92.29,468.75L92.66,467.86L93.56,467.20L93.96,466.28L95.04,467.23L95.14,468.78L96.19,469.24L96.96,468.33L98.70,468.03L101.41,468.74L100.77,469.81L100.92,470.43L102.83,470.79L102.43,471.77L104.42,472.12L104.93,471.45L106.38,471.38L106.54,471.76L108.92,470.77L110.81,471.53L111.27,471.34L112.06,472.20L112.42,471.82L113.94,472.84L115.41,473.05L116.13,472.73L118.95,472.56L120.31,473.45L121.63,473.84L122.53,473.63L124.35,472.17L126.04,471.66L131.63,474.29L132.89,474.44L147.28,547.06L149.21,547.34L149.31,546.62L151.37,547.20L152.23,545.75L154.53,545.10L154.57,547.27L155.39,547.87L156.82,548.23L157.38,549.24L162.34,552.36L163.62,554.78L165.56,552.22L166.51,551.92L166.71,550.88L166.31,549.50L166.98,549.32L166.50,548.33L167.93,547.41L169.44,545.86L171.68,547.16L171.84,548.29L172.57,549.25L173.65,549.20L175.39,550.44L176.31,551.64L178.23,552.14L180.75,553.84L180.54,554.26L182.25,555.69L183.01,556.70L184.23,557.61L186.33,559.76L188.30,561.52L188.12,562.59L189.55,562.48L189.69,563.91L190.92,564.07L191.60,565.55L192.61,565.10L195.20,565.93L196.56,565.76L198.22,566.23L198.66,566.91L200.06,566.59L200.95,567.97L200.85,569.27L201.45,570.62L202.91,572.65L202.40,575.86L201.42,577.93L200.74,577.30L200.28,577.75L198.44,575.01L199.11,573.92L198.46,572.12L197.58,570.58L196.83,570.22L198.10,571.89L198.45,574.23L198.13,575.08L196.88,575.17L195.42,574.72L194.36,573.68L194.59,572.67L194.06,570.69L194.05,572.56L193.62,573.15L193.89,574.04L192.75,573.67L192.30,572.88L192.54,571.70L192.05,570.06L192.21,568.78L191.59,570.15L192.03,570.82L191.11,571.79L190.24,570.51L189.21,570.47L188.91,569.69L189.35,568.58L190.17,568.22L189.58,567.21L190.42,567.17L188.48,566.35L188.23,565.39L187.14,565.08L185.74,563.91L183.24,563.50L183.07,562.06L182.32,560.45L181.52,560.31L181.39,559.61L183.62,559.95L181.62,559.00L180.98,559.08L178.98,557.46L178.41,555.79L178.27,556.53L176.22,556.75L175.02,555.08L172.81,552.79L171.52,550.29L170.28,549.56L170.00,550.11L171.38,551.19L171.77,552.40L173.35,554.53L174.65,557.70L173.31,557.41L172.68,556.53L171.83,556.53L170.83,557.21L170.30,555.39L169.17,554.07L168.68,554.72L167.53,554.33L167.06,553.39L166.72,554.10L165.76,553.79L165.69,554.31L167.04,554.40L168.38,555.31L168.97,555.31L170.29,557.37L169.07,558.39L168.41,558.40L167.98,559.32L166.64,558.24L165.97,558.42L163.76,557.38L161.95,556.25L161.77,555.57L160.00,554.48L158.49,554.22L157.16,553.56L154.96,552.99L152.98,552.14L153.31,551.24L153.93,551.35L153.26,549.32L153.35,547.93L152.79,549.82L150.96,551.30L148.59,551.38L146.31,550.74L146.77,549.66L145.51,550.20L141.67,549.90L140.59,550.00L135.31,551.63L133.99,553.45L134.42,552.23L135.18,551.31L135.82,551.20L134.66,550.40L132.28,550.27L132.89,549.83L131.96,549.60L132.33,548.47L130.84,549.73L128.81,548.68L128.00,548.94L128.79,547.81L127.37,548.90L127.55,549.72L125.26,550.63L125.41,549.00L126.03,549.09L128.44,547.77L127.91,546.87L126.92,547.71L127.36,546.70L125.66,547.41L124.83,547.01L126.73,545.95L125.33,546.40L124.47,545.32L124.84,543.98L123.63,545.59L123.13,544.17L122.83,545.69L122.13,546.20L121.63,545.61L120.82,546.81L119.24,547.12L119.79,544.85L118.97,544.97L118.41,547.44L119.43,547.56L118.75,549.73L119.61,548.70L120.28,549.85L119.70,551.56L121.05,552.87L120.26,553.90L119.42,554.02L118.92,552.42L118.65,554.01L117.92,554.29L115.96,553.92L114.89,555.03L115.20,554.05L114.69,552.87L114.64,554.50L113.53,554.34L113.67,556.81L112.47,555.68L112.91,556.61L111.35,558.72L111.00,558.84L110.45,557.38L110.34,558.70L109.78,558.73L108.81,560.38L107.58,560.55L107.15,560.01L106.44,560.98L105.80,561.02L104.85,560.29L105.17,558.95L106.63,558.39L108.68,555.92L108.16,555.99L106.66,557.20L105.15,556.17L105.74,554.05L106.86,552.45L107.29,549.87L106.70,548.53L108.15,547.86L110.54,545.81L111.30,546.87L112.07,547.12L112.90,546.24L115.48,546.77L112.99,545.84L111.64,544.81L112.95,542.90L113.94,542.34L113.22,542.02L112.28,542.95L111.94,544.14L110.11,544.19L109.41,543.81L108.02,544.82L107.52,545.90L106.33,546.23L105.14,547.52L105.55,548.48L104.99,548.49L103.25,550.35L103.57,551.24L101.65,553.03L102.32,553.83L101.40,555.40L99.79,555.54L100.64,555.82L100.45,556.90L97.63,558.11L97.76,558.97L96.20,559.53L96.03,562.30L96.41,561.87L97.68,562.02L99.12,562.70L99.59,563.52L99.12,564.48L98.00,565.53L97.09,565.58L96.43,566.51L96.68,567.41L95..."
-    } 
-    // ADD THE REST OF YOUR STATE DATA HERE
-    ];
-    // --- UTILITIES ---
-    const getRandom = (arr, num) => {
-        const shuffled = [...arr].sort(() => 0.5 - Math.random());
-        return shuffled.slice(0, num);
-    };
+    // --- STATE DATA (NEW ASYNCHRONOUS LOADING) ---
+    // Start with an empty array. It will be populated after fetching.
+    let STATE_DATA = [];
+
+    // Utility function to render the full US map from the data
+    function renderUSMap() {
+        const mapGroup = document.getElementById('map-group');
+        mapGroup.innerHTML = ''; // Clear previous map content
+
+        STATE_DATA.forEach(state => {
+            const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            path.setAttribute('d', state.path);
+            path.setAttribute('id', 'map-' + state.name.replace(/\s/g, ''));
+            path.setAttribute('class', 'usa-state');
+            path.dataset.stateName = state.name;
+            // Assumes handleMapClick function is defined elsewhere in the script
+            path.addEventListener('click', handleMapClick); 
+            mapGroup.appendChild(path);
+        });
+    }
+
+    // Function to fetch the data file
+    async function fetchStateData() {
+        const totalScore = document.getElementById('total-score');
+        
+        // 1. Visually indicate loading
+        totalScore.innerText = "LOADING DATA...";
+        
+        // 2. Disable menu buttons to prevent game start before data is ready
+        document.querySelectorAll('.menu-grid .menu-card, .btn-block').forEach(btn => {
+            btn.style.pointerEvents = 'none';
+            btn.style.opacity = '0.5';
+        });
+
+        try {
+            // *** CORRECTED PATH: Assumes state_data.json is in the same directory ***
+            const response = await fetch('state_data.json'); 
+            // **********************************************************************
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            // 3. Populate the global STATE_DATA array
+            STATE_DATA = await response.json();
+
+            // 4. Re-enable menu buttons and initialize data-dependent components
+            document.querySelectorAll('.menu-grid .menu-card, .btn-block').forEach(btn => {
+                btn.style.pointerEvents = '';
+                btn.style.opacity = '1';
+            });
+            
+            // Initial map render is now possible
+            renderUSMap(); 
+            // Load saved score (assuming loadData is a function defined later in the script)
+            loadData(); 
+
+        } catch (error) {
+            console.error("Could not load state data:", error);
+            totalScore.innerText = "ERROR LOADING DATA";
+            document.getElementById('menu-screen').innerHTML = `
+                <h1 style="color:red;">ERROR</h1>
+                <p>Could not load <strong>state_data.json</strong>.</p>
+                <p>Verify the file exists in the same folder as index.html, and check the console for details.</p>
+                <p>If running locally, some browsers require a local web server (like Live Server).</p>
+            `;
+        }
+    }
+
+    // --- END NEW ASYNCHRONOUS LOADING BLOCK ---
 
     // --- STATE MANAGEMENT ---
-    let state = loadData();
+    let state = {
+        score: 0,
+        mode: null, // 'map', 'state', 'capital', or 'test'
+        pool: [],
+        currentIdx: 0,
+        testTotal: 50,
+        testCorrect: 0
+    };
 
-    function loadData() {
-        const savedState = localStorage.getItem('macatlasState');
-        return savedState ? JSON.parse(savedState) : {
-            score: 0,
-            mode: 'menu',
-            pool: [...STATE_DATA],
-            currentIdx: 0,
-            correctAnswer: null,
-            testCorrect: 0,
-            testTotal: 50 // Example number of test questions
-        };
+    // --- UTILITIES ---
+    function getRandomElements(arr, count, exclude = null) {
+        const shuffled = arr.filter(e => e !== exclude).sort(() => 0.5 - Math.random());
+        return shuffled.slice(0, count);
     }
 
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+    }
+
+    // --- PERSISTENCE ---
     function saveData() {
-        localStorage.setItem('macatlasState', JSON.stringify(state));
-        updateScores();
-    }
-
-    function updateScores() {
+        localStorage.setItem('macatlas20_state', JSON.stringify({ score: state.score }));
         document.getElementById('total-score').innerText = state.score;
         document.getElementById('puzzle-score').innerText = state.score;
         document.getElementById('map-score').innerText = state.score;
     }
 
-    // --- GAME LOGIC --- 
+    function loadData() {
+        const savedState = localStorage.getItem('macatlas20_state');
+        if (savedState) {
+            const data = JSON.parse(savedState);
+            state.score = data.score || 0;
+        }
+        document.getElementById('total-score').innerText = state.score;
+        document.getElementById('puzzle-score').innerText = state.score;
+        document.getElementById('map-score').innerText = state.score;
+    }
+
+    function resetData() {
+        if(confirm("Are you sure you want to reset your score to 0?")) {
+            localStorage.removeItem('macatlas20_state');
+            state.score = 0;
+            saveData();
+        }
+    }
+
+    // --- GAME LOGIC ---
     function startGame(mode) {
         state.mode = mode;
         state.pool = [...STATE_DATA].sort(() => Math.random() - 0.5);
         state.currentIdx = 0;
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-
         if (mode === 'map') {
             document.getElementById('map-screen').classList.add('active');
             initMapGame();
         } else {
             document.getElementById('puzzle-screen').classList.add('active');
-            document.getElementById('puzzle-mode-label').innerText = 
-                mode === 'state' ? "Identify State" : "State to Capital Reverse";
-            updateScores();
+            document.getElementById('puzzle-mode-label').innerText = mode === 'state' ? "Identify State" : "State Capitals";
+            document.getElementById('puzzle-score').innerText = state.score;
             loadPuzzleRound();
         }
-        document.getElementById('puzzle-feedback').innerText = '';
-        document.getElementById('map-feedback').innerText = '';
     }
 
     function startTest() {
         state.mode = 'test';
         state.testCorrect = 0;
-        state.testTotal = 10; // Simple 10 question test
-        state.pool = getRandom(STATE_DATA, state.testTotal); // Get a random subset
+        state.testTotal = STATE_DATA.length;
+        state.pool = [...STATE_DATA].sort(() => Math.random() - 0.5);
         state.currentIdx = 0;
-
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.getElementById('puzzle-screen').classList.add('active');
-        document.getElementById('puzzle-mode-label').innerText = "TEST MODE";
-        loadPuzzleRound(true);
-        document.getElementById('puzzle-feedback').innerText = 'BEGIN TEST...';
+        document.getElementById('puzzle-mode-label').innerText = `Test Mode (${state.testCorrect}/${state.testTotal})`;
+        loadPuzzleRound();
     }
-
+    
     function quitGame() {
-        state.mode = 'menu';
+        document.querySelectorAll('.usa-state').forEach(path => path.classList.remove('highlighted', 'wrong'));
+        document.getElementById('puzzle-feedback').innerText = "";
+        document.getElementById('map-feedback').innerText = "";
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.getElementById('menu-screen').classList.add('active');
-        updateScores();
+        loadData(); // Update score display on exit
     }
 
-    // --- PUZZLE GAME (Shape/Capital) LOGIC ---
-    function loadPuzzleRound(isTest = false) {
+    // --- PUZZLE GAME (Shape/Capital) ---
+
+    function loadPuzzleRound() {
+        const correctState = state.pool[state.currentIdx];
+        const displayPath = document.getElementById('state-path');
+        const choicesGrid = document.getElementById('puzzle-choices');
         const feedback = document.getElementById('puzzle-feedback');
-        feedback.innerText = isTest ? 'SELECT ONE' : '';
+        
+        choicesGrid.innerHTML = '';
+        feedback.innerText = "";
         feedback.classList.remove('correct', 'wrong');
 
-        if (state.currentIdx >= state.pool.length) {
-            if (state.mode === 'test') {
-                showReport();
-                return;
-            }
-            // Loop back to start if in training mode
-            state.currentIdx = 0;
-            state.pool.sort(() => Math.random() - 0.5);
+        // 1. Set the question text
+        let question;
+        let correctAnswer;
+        let choiceProperty;
+
+        if (state.mode === 'state' || state.mode === 'test') {
+            question = "Which state is this?";
+            correctAnswer = correctState.name;
+            choiceProperty = 'name';
+        } else if (state.mode === 'capital') {
+            question = `What is the capital of ${correctState.name}?`;
+            correctAnswer = correctState.capital;
+            choiceProperty = 'capital';
         }
 
-        const correct = state.pool[state.currentIdx];
-        const allExceptCorrect = STATE_DATA.filter(s => s.name !== correct.name);
-        const wrongAnswers = getRandom(allExceptCorrect, 3);
-        
-        let choices;
-        let questionText = "";
+        document.getElementById('puzzle-question').innerText = question;
 
-        if (state.mode === 'state' || (state.mode === 'test' && state.currentIdx % 2 === 0)) {
-            // State Identification (Show Shape, Guess Name)
-            questionText = `WHICH STATE IS THIS?`;
-            state.correctAnswer = correct.name;
-            choices = [correct.name, ...wrongAnswers.map(s => s.name)];
-        } else { 
-            // Capital Identification (New Reverse Mode: Show Capital, Guess State)
-            questionText = `WHICH STATE IS THE CAPITAL ${correct.capital.toUpperCase()}?`;
-            state.correctAnswer = correct.name; // The answer is the State Name
-            choices = [correct.name, ...wrongAnswers.map(s => s.name)];
+        // 2. Set the state shape/path (if not capital mode)
+        if (state.mode !== 'capital') {
+            displayPath.setAttribute('d', correctState.path);
+
+            // Determine the bounding box for proper scaling
+            const svg = document.getElementById('state-display');
+            // This is a rough estimation function for the viewBox, to center the state.
+            const viewBox = getPathViewBox(correctState.path);
+            svg.setAttribute('viewBox', viewBox);
+        } else {
+             // For capital mode, clear the map
+             displayPath.setAttribute('d', '');
+             document.getElementById('state-display').setAttribute('viewBox', '0 0 960 600');
         }
 
-        // Set state path for puzzle
-        const statePath = document.getElementById('state-path');
-        statePath.setAttribute('d', correct.path);
-        
-        // Adjust viewBox to focus on the current state shape
-        const bbox = statePath.getBBox();
-        const padding = 20;
-        document.getElementById('state-display').setAttribute('viewBox', 
-            `${bbox.x - padding} ${bbox.y - padding} ${bbox.width + 2 * padding} ${bbox.height + 2 * padding}`
-        );
-        
-        // Set prompt and shuffle/render choices
-        document.getElementById('puzzle-question').innerText = questionText;
-        choices.sort(() => Math.random() - 0.5);
+        // 3. Generate choice buttons
+        let incorrectStates = getRandomElements(STATE_DATA, 3, correctState);
+        let choices = [correctState, ...incorrectStates];
+        shuffleArray(choices);
 
-        const choicesGrid = document.getElementById('puzzle-choices');
-        choicesGrid.innerHTML = '';
         choices.forEach(choice => {
             const btn = document.createElement('button');
-            btn.className = 'btn';
-            btn.innerText = choice.toUpperCase();
-            btn.onclick = () => checkPuzzleAnswer(btn, choice);
+            btn.classList.add('btn', 'btn-block');
+            btn.dataset.answer = choice[choiceProperty];
+            btn.innerText = choice[choiceProperty].toUpperCase();
+            btn.addEventListener('click', checkPuzzleAnswer);
             choicesGrid.appendChild(btn);
         });
+        
+        // This is a rough estimation function for the viewBox, to center the state.
+        function getPathViewBox(d) {
+            const numbers = d.match(/-?\d+(\.\d+)?/g).map(Number);
+            
+            if (numbers.length === 0) return '0 0 960 600';
+
+            const minX = Math.min(...numbers.filter((_, i) => i % 2 === 0));
+            const minY = Math.min(...numbers.filter((_, i) => i % 2 !== 0));
+            const maxX = Math.max(...numbers.filter((_, i) => i % 2 === 0));
+            const maxY = Math.max(...numbers.filter((_, i) => i % 2 !== 0));
+            
+            const padding = 20; 
+            const x = minX - padding;
+            const y = minY - padding;
+            const width = (maxX - minX) + 2 * padding;
+            const height = (maxY - minY) + 2 * padding;
+            
+            return `${x} ${y} ${width} ${height}`;
+        }
+
     }
 
-    function checkPuzzleAnswer(btn, clickedAnswer) {
+    function checkPuzzleAnswer(event) {
+        const correct = state.pool[state.currentIdx];
+        const selectedAnswer = event.target.dataset.answer;
         const feedback = document.getElementById('puzzle-feedback');
         const win = document.getElementById('main-window');
-        win.classList.remove('shake-effect');
+        const btns = document.querySelectorAll('#puzzle-choices .btn');
 
-        // Disable all buttons to prevent multiple clicks
-        document.getElementById('puzzle-choices').querySelectorAll('.btn').forEach(b => b.disabled = true);
+        // Disable all buttons immediately after first click
+        btns.forEach(btn => btn.removeEventListener('click', checkPuzzleAnswer));
 
-        const isCorrect = (clickedAnswer === state.correctAnswer);
+        let correctValue;
+        if (state.mode === 'state' || state.mode === 'test') {
+            correctValue = correct.name;
+        } else if (state.mode === 'capital') {
+            correctValue = correct.capital;
+        }
+
+        let isCorrect = selectedAnswer === correctValue;
 
         if (isCorrect) {
             if(state.mode === 'test') state.testCorrect++;
             else state.score += 10;
             
-            btn.classList.add('selected');
+            event.target.classList.add('selected');
             feedback.classList.add('correct');
             feedback.innerText = "CORRECT!";
-            saveData();
-            setTimeout(nextPuzzleRound, 1000);
-        } else {
-            void win.offsetWidth; 
-            win.classList.add('shake-effect');
-            feedback.classList.add('wrong');
-            feedback.innerText = `WRONG! THE ANSWER IS ${state.correctAnswer.toUpperCase()}`;
             
-            // Highlight the correct answer among the choices
-            document.getElementById('puzzle-choices').querySelectorAll('.btn').forEach(b => {
-                if (b.innerText.toUpperCase() === state.correctAnswer.toUpperCase()) {
-                    b.classList.add('selected');
+            saveData();
+            
+            if(state.mode === 'test') setTimeout(nextTestRound, 1000);
+            else setTimeout(nextPuzzleRound, 1000);
+
+        } else {
+            void win.offsetWidth; win.classList.add('shake-effect');
+            feedback.classList.add('wrong');
+            feedback.innerText = `WRONG! The correct answer is ${correctValue.toUpperCase()}.`;
+            
+            // Highlight the correct button
+            btns.forEach(btn => {
+                if(btn.dataset.answer === correctValue) {
+                    btn.classList.add('selected');
                 }
             });
 
-            setTimeout(nextPuzzleRound, 2000);
+            if(state.mode === 'test') setTimeout(nextTestRound, 2000);
+            else setTimeout(nextPuzzleRound, 2000);
         }
     }
 
     function nextPuzzleRound() {
         state.currentIdx++;
-        loadPuzzleRound(state.mode === 'test');
+        if(state.currentIdx >= state.pool.length) state.currentIdx = 0; // Loop indefinitely
+        loadPuzzleRound();
     }
 
-    // --- MAP GAME LOGIC ---
+    function nextTestRound() {
+        state.currentIdx++;
+        if(state.currentIdx >= state.testTotal) {
+            showReport();
+        } else {
+            document.getElementById('puzzle-mode-label').innerText = `Test Mode (${state.testCorrect}/${state.testTotal})`;
+            loadPuzzleRound();
+        }
+    }
+
+
+    // --- MAP GAME (Find State) ---
+    
     function initMapGame() {
-        const mapGroup = document.getElementById('map-group');
-        mapGroup.innerHTML = '';
-        
-        STATE_DATA.forEach(state => {
-            const path = document.createElementNS("http://www.w3.org/2000/svg", 'path');
-            path.setAttribute('d', state.path);
-            path.setAttribute('class', 'usa-state');
-            path.setAttribute('id', 'map-' + state.name);
-            path.setAttribute('data-name', state.name);
-            path.onclick = () => checkMapAnswer(state);
-            mapGroup.appendChild(path);
-        });
+        // Map is rendered only once during the loading phase by fetchStateData -> renderUSMap()
+        // Here we just ensure all states are reset and we load the first question.
+        document.querySelectorAll('.usa-state').forEach(path => path.classList.remove('highlighted', 'wrong'));
         loadMapRound();
     }
 
     function loadMapRound() {
+        const correctState = state.pool[state.currentIdx];
+        const targetElement = document.getElementById('map-target');
         const feedback = document.getElementById('map-feedback');
-        feedback.innerText = '';
+        const allStates = document.querySelectorAll('.usa-state');
+        
+        feedback.innerText = "";
         feedback.classList.remove('correct', 'wrong');
 
-        if (state.currentIdx >= state.pool.length) {
-            state.currentIdx = 0;
-            state.pool.sort(() => Math.random() - 0.5);
-        }
-
-        const correct = state.pool[state.currentIdx];
-        document.getElementById('map-target').innerText = correct.name.toUpperCase();
-        
-        // Reset all states
-        document.getElementById('map-group').querySelectorAll('.usa-state').forEach(path => {
+        // Reset map highlights and re-enable click listeners
+        allStates.forEach(path => {
             path.classList.remove('highlighted', 'wrong');
-            path.disabled = false;
+            path.addEventListener('click', handleMapClick);
         });
 
-        // Set the correct answer for the round
-        state.correctAnswer = correct.name;
+        // Set the question
+        targetElement.innerText = correctState.name;
     }
 
-    function checkMapAnswer(clickedState) {
-        // Disable further clicks
-        document.getElementById('map-group').querySelectorAll('.usa-state').forEach(path => path.disabled = true);
-        
+    function handleMapClick(event) {
+        const correct = state.pool[state.currentIdx];
+        const clickedState = STATE_DATA.find(s => s.name === event.target.dataset.stateName);
         const feedback = document.getElementById('map-feedback');
+        const allStates = document.querySelectorAll('.usa-state');
+
+        // Disable all click listeners
+        allStates.forEach(path => path.removeEventListener('click', handleMapClick));
+        
+        // Remove shake class for reset
         const win = document.getElementById('main-window');
         win.classList.remove('shake-effect');
 
-        if (clickedState.name === state.correctAnswer) {
-            document.getElementById("map-" + clickedState.name).classList.add('highlighted');
+        if (clickedState.name === correct.name) {
+            document.getElementById("map-" + correct.name.replace(/\s/g, '')).classList.add('highlighted');
             feedback.classList.add('correct');
             feedback.innerText = "FOUND IT!";
-            state.score += 15; 
-            saveData();
+            state.score += 15; saveData();
             setTimeout(nextMapRound, 1000);
         } else {
-            void win.offsetWidth; 
-            win.classList.add('shake-effect');
+            void win.offsetWidth; win.classList.add('shake-effect');
+            document.getElementById("map-" + clickedState.name.replace(/\s/g, '')).classList.add('wrong');
+            document.getElementById("map-" + correct.name.replace(/\s/g, '')).classList.add('highlighted'); // Show correct
             feedback.classList.add('wrong');
-            
-            // Highlight wrong choice
-            document.getElementById("map-" + clickedState.name).classList.add('wrong');
-            // Show correct choice
-            document.getElementById("map-" + state.correctAnswer).classList.add('highlighted'); 
-            
-            feedback.innerText = `THAT IS ${clickedState.name.toUpperCase()}! CORRECT IS ${state.correctAnswer.toUpperCase()}`;
+            feedback.innerText = `THAT IS ${clickedState.name.toUpperCase()}. FIND ${correct.name.toUpperCase()}.`;
             setTimeout(nextMapRound, 2000);
         }
     }
@@ -558,9 +645,11 @@
         document.getElementById('report-modal').style.display = 'none';
         quitGame();
     }
-    
-    // Initialize on load
-    updateScores(); 
+
+    // This must be the last thing to run in the script block.
+    // It starts the data loading process immediately after the page loads.
+    fetchStateData(); 
+
 </script>
 </body>
 </html>
