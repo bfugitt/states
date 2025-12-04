@@ -1,0 +1,52 @@
+[
+    {
+        "name": "The Four Corners",
+        "base": "Colorado",
+        "pieces": ["Utah", "Arizona", "New Mexico"]
+    },
+    {
+        "name": "Pacific Northwest",
+        "base": "Washington",
+        "pieces": ["Oregon", "Idaho"]
+    },
+    {
+        "name": "The Golden West",
+        "base": "California",
+        "pieces": ["Nevada", "Arizona"]
+    },
+    {
+        "name": "Northern New England",
+        "base": "Maine",
+        "pieces": ["New Hampshire", "Vermont"]
+    },
+    {
+        "name": "Southern New England",
+        "base": "Massachusetts",
+        "pieces": ["Connecticut", "Rhode Island"]
+    },
+    {
+        "name": "The Dakotas",
+        "base": "South Dakota",
+        "pieces": ["North Dakota", "Minnesota", "Nebraska"]
+    },
+    {
+        "name": "The Deep South",
+        "base": "Alabama",
+        "pieces": ["Mississippi", "Georgia", "Florida"]
+    },
+    {
+        "name": "The Virginias",
+        "base": "Virginia",
+        "pieces": ["West Virginia", "Maryland", "Kentucky"]
+    },
+    {
+        "name": "Lake Michigan",
+        "base": "Michigan",
+        "pieces": ["Wisconsin", "Illinois", "Indiana"]
+    },
+    {
+        "name": "Texarkana",
+        "base": "Texas",
+        "pieces": ["Oklahoma", "Arkansas", "Louisiana"]
+    }
+]
