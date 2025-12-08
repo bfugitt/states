@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MacAtlas v4.2 - Layout Fix</title>
+    <title>MacAtlas v5.0 - Zoom Edition</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -16,10 +16,7 @@
             --border-color: #000000;
         }
         
-        /* Global Box Sizing Reset - Critical for preventing padding layout bugs */
-        * {
-            box-sizing: border-box;
-        }
+        * { box-sizing: border-box; }
 
         body {
             font-family: 'VT323', monospace;
@@ -56,13 +53,7 @@
         }
 
         #title-bar {
-            background: repeating-linear-gradient(
-                to bottom,
-                #000,
-                #000 1px,
-                #fff 1px,
-                #fff 2px
-            );
+            background: repeating-linear-gradient(to bottom, #000, #000 1px, #fff 1px, #fff 2px);
             height: 24px;
             border-bottom: 2px solid var(--border-color);
             display: flex;
@@ -70,7 +61,7 @@
             justify-content: center;
             position: relative;
             cursor: default;
-            flex-shrink: 0; /* Prevent title bar from shrinking */
+            flex-shrink: 0;
         }
 
         #title-text {
@@ -93,9 +84,9 @@
 
         /* CONTENT AREA */
         #content {
-            flex: 1; /* Fills remaining height */
+            flex: 1;
             padding: 20px;
-            overflow: hidden; /* Prevent double scrollbars, children will handle scrolling if needed */
+            overflow: hidden; 
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -106,16 +97,13 @@
         .screen {
             display: none;
             width: 100%;
-            /* Removed fixed height 100% to let flex handle it */
             flex: 1; 
-            min-height: 0; /* Crucial for nested flex scrolling */
+            min-height: 0; 
             flex-direction: column;
             align-items: center;
         }
 
-        .screen.active {
-            display: flex;
-        }
+        .screen.active { display: flex; }
 
         h1 {
             font-size: 48px;
@@ -139,14 +127,8 @@
             text-align: center;
         }
 
-        .btn:active {
-            transform: translate(2px, 2px);
-            box-shadow: 1px 1px 0 #000;
-        }
-
-        .btn:hover {
-            background: #eee;
-        }
+        .btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 #000; }
+        .btn:hover { background: #eee; }
 
         /* GAME HUD */
         #hud {
@@ -157,10 +139,10 @@
             padding-bottom: 10px;
             margin-bottom: 10px;
             font-size: 24px;
-            flex-shrink: 0; /* Don't squash the HUD */
+            flex-shrink: 0;
         }
 
-        /* MAP GAME */
+        /* MAP GAME & ZOOM CONTROLS */
         #map-container {
             flex: 1;
             width: 100%;
@@ -168,8 +150,42 @@
             background: #f0f8ff;
             border: 2px solid #000;
             overflow: hidden;
-            touch-action: none;
+            touch-action: none; /* Crucial for custom drag handling */
+            cursor: grab;
         }
+
+        #map-container:active {
+            cursor: grabbing;
+        }
+        
+        /* Zoom Overlay */
+        #zoom-controls {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            z-index: 100;
+        }
+
+        .zoom-btn {
+            width: 32px;
+            height: 32px;
+            background: #fff;
+            border: 2px solid #000;
+            font-family: 'VT323', monospace;
+            font-size: 24px;
+            line-height: 24px;
+            text-align: center;
+            cursor: pointer;
+            box-shadow: 2px 2px 0 rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .zoom-btn:active { transform: translate(1px, 1px); box-shadow: 1px 1px 0 rgba(0,0,0,0.5); }
         
         svg {
             width: 100%;
@@ -183,6 +199,7 @@
             stroke-width: 1;
             cursor: pointer;
             transition: fill 0.2s;
+            vector-effect: non-scaling-stroke; /* Keeps borders thin when zoomed! */
         }
         
         #map-container path:hover { fill: #ddd; }
@@ -199,167 +216,83 @@
             position: relative;
             overflow: hidden;
             touch-action: none;
-            min-height: 0; /* Ensures it shrinks correctly in flex */
+            min-height: 0;
         }
 
-        .puzzle-base {
-            fill: #444;
-            stroke: #000;
-            stroke-width: 1;
-        }
-
-        .puzzle-target {
-            fill: none;
-            stroke: #888;
-            stroke-width: 1;
-            stroke-dasharray: 5,5;
-        }
-
+        .puzzle-base { fill: #444; stroke: #000; stroke-width: 1; }
+        .puzzle-target { fill: none; stroke: #888; stroke-width: 1; stroke-dasharray: 5,5; }
+        
         .puzzle-piece {
-            fill: #fff;
-            stroke: #000;
-            stroke-width: 1;
-            cursor: grab;
-            filter: drop-shadow(3px 3px 0px rgba(0,0,0,0.3));
+            fill: #fff; stroke: #000; stroke-width: 1;
+            cursor: grab; filter: drop-shadow(3px 3px 0px rgba(0,0,0,0.3));
             transition: transform 0.1s;
         }
-
         .puzzle-piece.dragging {
-            cursor: grabbing;
-            fill: #eee;
+            cursor: grabbing; fill: #eee;
             filter: drop-shadow(5px 5px 0px rgba(0,0,0,0.5));
-            transition: none;
-            z-index: 1000;
+            transition: none; z-index: 1000;
         }
-
         .puzzle-piece.snapped {
-            fill: #444; 
-            cursor: default;
-            filter: none;
-            transition: fill 0.5s;
+            fill: #444; cursor: default; filter: none; transition: fill 0.5s;
         }
-
         .puzzle-label {
-            font-family: 'VT323', monospace;
-            fill: #fff;
-            font-size: 14px;
-            text-anchor: middle;
-            dominant-baseline: middle;
-            pointer-events: none; 
-            text-shadow: 1px 1px 0 #000;
-            opacity: 0;
-            animation: fadeIn 0.5s forwards;
-            font-weight: bold;
+            font-family: 'VT323', monospace; fill: #fff; font-size: 14px;
+            text-anchor: middle; dominant-baseline: middle; pointer-events: none; 
+            text-shadow: 1px 1px 0 #000; opacity: 0; animation: fadeIn 0.5s forwards; font-weight: bold;
         }
         
-        @keyframes fadeIn {
-            from { opacity: 0; transform: scale(0.5); }
-            to { opacity: 1; transform: scale(1); }
-        }
-
-        @keyframes blink {
-            0% { opacity: 0.5; }
-            50% { opacity: 1; }
-            100% { opacity: 0.5; }
-        }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.5); } to { opacity: 1; transform: scale(1); } }
+        @keyframes blink { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
 
         /* FEEDBACK BAR */
         #feedback-bar {
-            margin-top: 10px;
-            width: 100%;
-            height: 40px;
-            border: 2px solid #000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            background: #eee;
-            transition: background 0.2s;
-            visibility: hidden; 
-            flex-shrink: 0; /* Keep size constant */
+            margin-top: 10px; width: 100%; height: 40px; border: 2px solid #000;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 24px; background: #eee; transition: background 0.2s;
+            visibility: hidden; flex-shrink: 0; 
         }
 
         #feedback-bar.visible { visibility: visible; }
         #feedback-bar.correct { background: #000; color: #fff; }
-        #feedback-bar.wrong { 
-            background: repeating-linear-gradient(45deg, #fff, #fff 10px, #ccc 10px, #ccc 20px);
-            color: #000; font-weight: bold;
-        }
+        #feedback-bar.wrong { background: repeating-linear-gradient(45deg, #fff, #fff 10px, #ccc 10px, #ccc 20px); color: #000; font-weight: bold; }
 
         /* QUIZ UI */
         .quiz-area {
-            flex: 1;
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden; 
+            flex: 1; width: 100%; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; overflow: hidden; 
         }
 
         #capital-prompt, #trivia-prompt {
-            font-size: 28px;
-            margin-bottom: 10px;
-            text-align: center;
-            max-width: 800px;
-            line-height: 1.2;
+            font-size: 28px; margin-bottom: 10px; text-align: center; max-width: 800px; line-height: 1.2;
         }
 
         #capital-state-preview {
-            height: 200px;
-            width: 100%;
-            max-width: 300px;
-            margin: 10px 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            height: 200px; width: 100%; max-width: 300px; margin: 10px 0;
+            display: flex; justify-content: center; align-items: center;
         }
         
         #capital-state-preview svg { filter: drop-shadow(4px 4px 0px rgba(0,0,0,0.2)); }
         #capital-state-preview path { fill: #ddd; stroke: #000; stroke-width: 2; cursor: default; }
 
         #capital-state-name, #trivia-state-name {
-            font-size: 48px;
-            font-weight: bold;
-            margin-bottom: 20px;
-            text-decoration: underline;
-            text-align: center;
+            font-size: 48px; font-weight: bold; margin-bottom: 20px;
+            text-decoration: underline; text-align: center;
         }
         
         #trivia-question-text {
-            font-size: 32px;
-            text-align: center;
-            margin: 20px;
-            max-width: 700px;
-            min-height: 100px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            font-size: 32px; text-align: center; margin: 20px;
+            max-width: 700px; min-height: 100px; display: flex; align-items: center; justify-content: center;
         }
 
         #options-grid, #trivia-options-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            width: 100%;
-            max-width: 600px;
+            display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%; max-width: 600px;
         }
 
         .option-btn {
-            background: #fff;
-            border: 2px solid #000;
-            padding: 12px;
-            font-family: 'VT323', monospace;
-            font-size: 24px;
-            cursor: pointer;
-            box-shadow: 4px 4px 0 #000;
-            transition: all 0.1s;
-            text-align: center;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 60px;
-            line-height: 1.1;
+            background: #fff; border: 2px solid #000; padding: 12px;
+            font-family: 'VT323', monospace; font-size: 24px; cursor: pointer;
+            box-shadow: 4px 4px 0 #000; transition: all 0.1s; text-align: center;
+            display: flex; align-items: center; justify-content: center; min-height: 60px; line-height: 1.1;
         }
 
         .option-btn:hover { background: #eee; }
@@ -369,22 +302,13 @@
 
         /* REPORT CARD MODAL */
         #report-modal {
-            display: none;
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(255,255,255,0.9);
-            z-index: 100;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
+            display: none; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(255,255,255,0.9); z-index: 100; flex-direction: column;
+            justify-content: center; align-items: center;
         }
 
         #report-card {
-            background: #fff;
-            border: 4px double #000;
-            padding: 40px;
-            text-align: center;
-            box-shadow: 10px 10px 0 rgba(0,0,0,0.2);
+            background: #fff; border: 4px double #000; padding: 40px; text-align: center; box-shadow: 10px 10px 0 rgba(0,0,0,0.2);
         }
 
         .shake-effect { animation: shake 0.5s; }
@@ -409,7 +333,7 @@
     <div id="main-window">
         <div id="title-bar">
             <div id="close-btn" onclick="quitGame()"></div>
-            <div id="title-text">MacAtlas v4.2</div>
+            <div id="title-text">MacAtlas v5.0</div>
         </div>
 
         <div id="content">
@@ -426,7 +350,6 @@
             </div>
 
             <!-- GAME SCREEN -->
-            <!-- Removed height:100% and replaced with flex:1 via class to fix scrollbar issues -->
             <div id="game-screen" class="screen">
                 <div id="hud">
                     <span id="score-display">SCORE: 000</span>
@@ -435,10 +358,14 @@
                 </div>
 
                 <!-- MAP MODE ELEMENTS -->
-                <!-- Removed fixed height 100%, using flex:1 inheritance from .screen -->
                 <div id="map-game-ui" style="display:none; width: 100%; flex: 1; min-height: 0; flex-direction: column;">
                     <div id="map-container">
                         <!-- SVG injected here -->
+                        <div id="zoom-controls">
+                            <div class="zoom-btn" onclick="zoomMap(1.2)">+</div>
+                            <div class="zoom-btn" onclick="zoomMap(0.8)">-</div>
+                            <div class="zoom-btn" onclick="resetZoom()">R</div>
+                        </div>
                     </div>
                     <div id="feedback-bar" class="visible">Locating Data...</div>
                 </div>
@@ -518,6 +445,11 @@
         roundAttempts: 0,
         roundResolved: false,
 
+        // Map Viewport (Zoom/Pan)
+        viewBox: { x: 0, y: 0, w: 959, h: 593 },
+        isPanning: false,
+        lastPan: { x: 0, y: 0 },
+
         // Stats for report
         testTotal: 0,
         testCorrect: 0,
@@ -543,29 +475,23 @@
     // --- INITIALIZATION ---
     async function loadAllData() {
         try {
-            // Load Map Data
             const mapRes = await fetch('state_data.json');
             if (!mapRes.ok) throw new Error("Could not load state_data.json");
             const mapData = await mapRes.json();
             if(!Array.isArray(mapData)) throw new Error("Map JSON is not array");
             state.allData = mapData;
 
-            // Load Trivia Data
             const trivRes = await fetch('trivia_data.json');
-            if (!trivRes.ok) throw new Error("Could not load trivia_data.json");
-            const trivData = await trivRes.json();
-            state.triviaData = trivData;
+            if (trivRes.ok) {
+                state.triviaData = await trivRes.json();
+            }
 
-            // Load Puzzle Data
             const puzRes = await fetch('puzzle_data.json');
-            if (!puzRes.ok) throw new Error("Could not load puzzle_data.json");
-            const puzData = await puzRes.json();
-            state.puzzleData = puzData;
+            if (puzRes.ok) {
+                state.puzzleData = await puzRes.json();
+            }
 
-            // Pre-render SVG
             renderMap();
-            
-            console.log("All data loaded successfully");
             
         } catch (e) {
             console.error(e);
@@ -576,8 +502,10 @@
     function renderMap() {
         const ns = "http://www.w3.org/2000/svg";
         const svg = document.createElementNS(ns, "svg");
-        svg.setAttribute("viewBox", `0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`);
+        // Use state viewBox
+        svg.setAttribute("viewBox", `${state.viewBox.x} ${state.viewBox.y} ${state.viewBox.w} ${state.viewBox.h}`);
         svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+        svg.setAttribute("id", "main-map-svg");
 
         state.allData.forEach(s => {
             const path = document.createElementNS(ns, "path");
@@ -585,17 +513,128 @@
             path.setAttribute("id", "map-" + s.name.replace(/\s/g, '')); 
             path.setAttribute("data-name", s.name);
             
-            path.addEventListener('click', (e) => {
-                if (state.gameMode === 'map') handleMapClick(s);
-            });
-
+            // Note: Click event logic handles slight drag threshold in listener below
+            
             svg.appendChild(path);
         });
 
         const container = document.getElementById('map-container');
+        // Clear old SVG but keep controls
+        const controls = container.querySelector('#zoom-controls');
         container.innerHTML = '';
+        if(controls) container.appendChild(controls);
         container.appendChild(svg);
+
+        // --- ADD PANNING LISTENERS ---
+        container.addEventListener('mousedown', startPan);
+        container.addEventListener('mousemove', doPan);
+        container.addEventListener('mouseup', endPan);
+        container.addEventListener('mouseleave', endPan);
+        
+        container.addEventListener('touchstart', startPan, {passive: false});
+        container.addEventListener('touchmove', doPan, {passive: false});
+        container.addEventListener('touchend', endPan);
     }
+
+    // --- ZOOM & PAN LOGIC ---
+    
+    function updateViewBox() {
+        const svg = document.getElementById('main-map-svg');
+        if(svg) {
+            svg.setAttribute("viewBox", `${state.viewBox.x} ${state.viewBox.y} ${state.viewBox.w} ${state.viewBox.h}`);
+        }
+    }
+
+    function zoomMap(factor) {
+        // Zoom center
+        const cx = state.viewBox.x + state.viewBox.w / 2;
+        const cy = state.viewBox.y + state.viewBox.h / 2;
+
+        const newW = state.viewBox.w / factor;
+        const newH = state.viewBox.h / factor;
+
+        state.viewBox.x = cx - newW / 2;
+        state.viewBox.y = cy - newH / 2;
+        state.viewBox.w = newW;
+        state.viewBox.h = newH;
+        
+        updateViewBox();
+    }
+
+    function resetZoom() {
+        state.viewBox = { x: 0, y: 0, w: SVG_WIDTH, h: SVG_HEIGHT };
+        updateViewBox();
+    }
+
+    // Pan Logic
+    let isClick = true; // Distinguish click from drag
+
+    function startPan(e) {
+        // Don't pan if clicking buttons
+        if (e.target.closest('#zoom-controls')) return;
+        
+        e.preventDefault();
+        state.isPanning = true;
+        isClick = true;
+        
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        
+        state.lastPan = { x: clientX, y: clientY };
+    }
+
+    function doPan(e) {
+        if (!state.isPanning) return;
+        e.preventDefault();
+
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+        const dx = clientX - state.lastPan.x;
+        const dy = clientY - state.lastPan.y;
+
+        // Threshold for determining drag vs click
+        if (Math.abs(dx) > 5 || Math.abs(dy) > 5) isClick = false;
+
+        // Convert pixels to SVG units
+        // We need ratio of viewBox width to container width
+        const container = document.getElementById('map-container');
+        const ratio = state.viewBox.w / container.clientWidth;
+
+        state.viewBox.x -= dx * ratio;
+        state.viewBox.y -= dy * ratio;
+
+        state.lastPan = { x: clientX, y: clientY };
+        updateViewBox();
+    }
+
+    function endPan(e) {
+        if (!state.isPanning) return;
+        state.isPanning = false;
+        
+        // If it was a click (not a drag), handle the map click
+        if (isClick && state.gameMode === 'map') {
+            // Find what was clicked. e.target might be the SVG background, so check.
+            // Since we prevented default, we might need to manually check element at point
+            // or just rely on the fact that e.target is the path if we clicked it.
+            
+            // However, touch events sometimes target the container.
+            // Let's use elementFromPoint to be safe for touch.
+            let target = e.target;
+            if (e.changedTouches && e.changedTouches.length > 0) {
+                 const t = e.changedTouches[0];
+                 target = document.elementFromPoint(t.clientX, t.clientY);
+            }
+            
+            if (target && target.tagName === 'path' && target.hasAttribute('data-name')) {
+                // Find data object
+                const name = target.getAttribute('data-name');
+                const sObj = state.allData.find(s => s.name === name);
+                if(sObj) handleMapClick(sObj);
+            }
+        }
+    }
+
 
     // --- GAME LOOP ---
 
@@ -611,6 +650,7 @@
         state.testCorrect = 0;
         state.startTime = Date.now();
         state.currentIdx = 0;
+        resetZoom(); // Always reset zoom on start
 
         const feedback = document.querySelectorAll('#feedback-bar');
         feedback.forEach(f => {
@@ -627,7 +667,6 @@
             state.pool = state.pool.slice(0, 10);
         } else if (mode === 'puzzle') {
             state.pool = [...state.puzzleData].sort(() => 0.5 - Math.random());
-            // Play all puzzles or just a few? Let's do 5 rounds.
             state.pool = state.pool.slice(0, 5);
         }
 
@@ -673,7 +712,7 @@
         document.getElementById('timer-display').innerText = `TIME: ${m}:${s}`;
     }
 
-    // --- PUZZLE GAME LOGIC (NEW) ---
+    // --- PUZZLE GAME LOGIC ---
 
     function loadPuzzleRound() {
         if (state.currentIdx >= state.pool.length) {
@@ -688,7 +727,6 @@
         feedback.innerText = "DRAG THE PIECES TO THE DOTTED LINES";
         feedback.className = 'visible';
 
-        // 1. Setup SVG
         const container = document.getElementById('puzzle-area');
         container.innerHTML = '';
         const ns = "http://www.w3.org/2000/svg";
@@ -696,7 +734,6 @@
         svg.setAttribute("width", "100%");
         svg.setAttribute("height", "100%");
         
-        // 2. Get Data for Base and Pieces
         const baseState = state.allData.find(s => s.name === levelData.base);
         const piecesStates = levelData.pieces.map(pName => state.allData.find(s => s.name === pName));
         
@@ -708,18 +745,14 @@
 
         state.puzzlePiecesLeft = piecesStates.length;
 
-        // 3. Render Base (Fixed)
+        // Base
         const basePath = document.createElementNS(ns, "path");
         basePath.setAttribute("d", baseState.path);
         basePath.setAttribute("class", "puzzle-base");
         svg.appendChild(basePath);
-        
-        // Add label to Base State immediately
-        setTimeout(() => {
-            addLabelToPuzzlePiece(basePath, baseState.name, svg);
-        }, 100);
+        setTimeout(() => addLabelToPuzzlePiece(basePath, baseState.name, svg), 100);
 
-        // 4. Render Targets (Dotted)
+        // Targets
         piecesStates.forEach(p => {
             const targetPath = document.createElementNS(ns, "path");
             targetPath.setAttribute("d", p.path);
@@ -727,22 +760,23 @@
             svg.appendChild(targetPath);
         });
 
-        // 5. Render Draggable Pieces (Scattered)
+        // Pieces
         piecesStates.forEach((p, index) => {
             const piece = document.createElementNS(ns, "path");
             piece.setAttribute("d", p.path);
             piece.setAttribute("class", "puzzle-piece");
-            piece.setAttribute("data-id", p.name); // Identify the piece
+            piece.setAttribute("data-id", p.name); 
             
-            // Random offset
-            const offsetX = (Math.random() * 200) - 100;
-            const offsetY = (Math.random() * 200) - 100;
+            // FIXED SPAWN LOGIC: Smaller random range to keep pieces closer
+            // Original: (Math.random() * 200) - 100
+            // New: (Math.random() * 120) - 60
+            const offsetX = (Math.random() * 120) - 60;
+            const offsetY = (Math.random() * 120) - 60;
             
             piece.dataset.tx = offsetX;
             piece.dataset.ty = offsetY;
             piece.setAttribute("transform", `translate(${offsetX}, ${offsetY})`);
             
-            // Events
             piece.addEventListener('mousedown', startDrag);
             piece.addEventListener('touchstart', startDrag, {passive: false});
             
@@ -751,7 +785,7 @@
 
         container.appendChild(svg);
 
-        // 6. Calculate BBox and ViewBox (Zoom to Region)
+        // Calculate ViewBox with EXTRA PADDING for Puzzle
         setTimeout(() => {
             try {
                 let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
@@ -764,7 +798,8 @@
                     if (bbox.y + bbox.height > maxY) maxY = bbox.y + bbox.height;
                 });
 
-                const pad = 40;
+                // FIXED PADDING: Increased from 40 to 120 to catch drifting pieces
+                const pad = 120;
                 const width = maxX - minX + (pad * 2);
                 const height = maxY - minY + (pad * 2);
                 
@@ -775,7 +810,6 @@
             }
         }, 50);
 
-        // Global Move/Up handlers
         svg.addEventListener('mousemove', drag);
         svg.addEventListener('touchmove', drag, {passive: false});
         svg.addEventListener('mouseup', endDrag);
@@ -783,7 +817,6 @@
         svg.addEventListener('mouseleave', endDrag);
     }
     
-    // Helper to add text label to center of a piece
     function addLabelToPuzzlePiece(pathElement, text, svgContainer) {
         try {
             const bbox = pathElement.getBBox();
@@ -797,36 +830,29 @@
             textEl.setAttribute("class", "puzzle-label");
             textEl.textContent = text.toUpperCase();
             
-            // Adjust for very small states if needed, but standard should be ok with zoom
-            // Maybe check width?
             if (bbox.width < 20 || bbox.height < 20) {
-               textEl.setAttribute("font-size", "10px"); // smaller font
+               textEl.setAttribute("font-size", "10px"); 
             }
 
             svgContainer.appendChild(textEl);
-        } catch(e) {
-            console.error("Label error", e);
-        }
+        } catch(e) {}
     }
 
-    // --- DRAG LOGIC ---
-    
+    // --- DRAG LOGIC (Puzzle) ---
     function startDrag(e) {
         e.preventDefault();
         const svg = document.querySelector('#puzzle-area svg');
         const piece = e.target;
         
-        if (piece.classList.contains('snapped')) return; // Already locked
+        if (piece.classList.contains('snapped')) return;
 
         state.draggedElement = piece;
         piece.classList.add('dragging');
         
-        // Show name in feedback bar
         const feedback = document.querySelector('#puzzle-game-ui #feedback-bar');
         feedback.innerText = "MOVING: " + piece.dataset.id.toUpperCase();
         feedback.className = 'visible';
         
-        // Move to front
         svg.appendChild(piece);
 
         const pt = getEventPoint(e, svg);
@@ -862,22 +888,18 @@
         piece.classList.remove('dragging');
         state.draggedElement = null;
 
-        // Check Match
         const tx = parseFloat(piece.dataset.tx);
         const ty = parseFloat(piece.dataset.ty);
         const dist = Math.sqrt(tx*tx + ty*ty);
 
         if (dist < 20) {
-            // SNAP!
             piece.setAttribute("transform", "translate(0, 0)");
             piece.classList.add('snapped');
             piece.dataset.tx = 0;
             piece.dataset.ty = 0;
             
-            // ADD LABEL
             addLabelToPuzzlePiece(piece, name, svg);
             
-            // Sfx (Visual)
             const feedback = document.querySelector('#puzzle-game-ui #feedback-bar');
             feedback.innerText = "PLACED: " + name.toUpperCase();
             feedback.className = 'correct visible';
@@ -888,7 +910,6 @@
             document.getElementById('score-display').innerText = "SCORE: " + state.score;
 
             if (state.puzzlePiecesLeft <= 0) {
-                // Round Complete
                 feedback.innerText = "REGION COMPLETE!";
                 state.testTotal++; 
                 setTimeout(nextPuzzleRound, 1500);
@@ -900,7 +921,6 @@
                     }
                 }, 1000);
             }
-
         } else {
             const feedback = document.querySelector('#puzzle-game-ui #feedback-bar');
             feedback.innerText = "NOT QUITE...";
@@ -926,7 +946,7 @@
     }
 
 
-    // --- QUIZ & TRIVIA HELPERS (UNCHANGED LOGIC) ---
+    // --- QUIZ HELPERS ---
     
     function loadCapitalRound() {
         if (state.currentIdx >= state.pool.length) { showReport(); return; }
