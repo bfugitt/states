@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MacAtlas v6.0 - Full Suite</title>
+    <title>MacAtlas v6.1 - Fix</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -367,7 +367,7 @@
     <div id="main-window">
         <div id="title-bar">
             <div id="close-btn" onclick="quitGame()"></div>
-            <div id="title-text">MacAtlas v6.0</div>
+            <div id="title-text">MacAtlas v6.1</div>
         </div>
 
         <div id="content">
@@ -687,9 +687,8 @@
         state.currentIdx = 0;
         resetZoom();
 
-        // UI Reset
-        document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
-        document.querySelectorAll('#game-screen > div').forEach(d => { if(d.id !== 'hud') d.style.display = 'none'; });
+        // UI Reset - FIXED: Removed inline style clearing that caused conflict
+        // Instead, rely purely on showScreen to manage visibility classes
         document.getElementById('hud').style.display = 'flex';
 
         // MODE SETUP
@@ -718,6 +717,11 @@
 
         if (state.timerInterval) clearInterval(state.timerInterval);
         if (mode !== 'flashcards') state.timerInterval = setInterval(updateTimer, 1000);
+
+        // Hide all sub-game UIs first
+        document.querySelectorAll('#game-screen > div').forEach(d => { 
+            if(d.id !== 'hud') d.style.display = 'none'; 
+        });
 
         // ROUTE TO CORRECT UI
         if (mode === 'map') {
